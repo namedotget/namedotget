@@ -17,7 +17,7 @@ export function HeroScene() {
       meshRef.current.position.y = -window.scrollY / 500;
       camera.position.z = 5 + window.scrollY / 900;
       spotRef.current.position.z = -3 + window.scrollY / 110;
-      spotRef.current.position.y = -window.scrollY / 100;
+      spotRef.current.position.y = -window.scrollY / 150;
     }
   });
 
@@ -29,7 +29,7 @@ export function HeroScene() {
         ref={spotRef}
         position={[0, 0, 10]}
         penumbra={0.75}
-        intensity={500}
+        intensity={150}
         scale={2}
         color={"lime"}
       />
