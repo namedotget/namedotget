@@ -16,7 +16,7 @@ export function Hero() {
         </Canvas>
       </div>
       <button
-        className="absolute bottom-[10%] right-[45%] text-4xl"
+        className="relative top-[65vh] text-4xl"
         onClick={() =>
           window.scroll({ top: window.innerHeight, behavior: "smooth" })
         }

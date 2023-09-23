@@ -2,9 +2,9 @@ import Link from "next/link";
 
 export function Items({ items, label, link = false }: any) {
   return (
-    <div className="mt-4 flex flex-col gap-2 justify-center w-full">
+    <div className="mt-4 flex flex-col gap-2 justify-center w-full md:w-1/2">
       <h1 className="font-bold text-2xl text-center">{label}</h1>
-      <div className="px-4 py-2 w-full md:w-1/2 glass h-full bg-[#1d1d1d] rounded-md">
+      <div className="px-4 py-2 w-full glass h-full bg-[#1d1d1d] rounded-md">
         {items.map((item: any, i: number) => (
           <div
             key={i}

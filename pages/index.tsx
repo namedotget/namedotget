@@ -20,11 +20,17 @@ export default function Home() {
       {/* <div className="mt-4 px-4 py-2 w-full md:w-1/2 glass h-full bg-[#1d1d1d] rounded-md">
         <p>Contact Me : colin@namedotget.com</p>
       </div> */}
-      <div className="mt-8 p-4 flex gap-[40%]">
-        <Link href="https://github.com/colinmfoster4723">
+      <div className="my-12 p-4 flex gap-[40%]">
+        <Link
+          className="hover:scale-[1.1] transition-all duration-300"
+          href="https://github.com/colinmfoster4723"
+        >
           <Image src="/github-mark.png" width={82} height={82} alt="" />
         </Link>
-        <Link href="https://twitter.com/namedotget">
+        <Link
+          className="hover:scale-[1.1] transition-all duration-300"
+          href="https://twitter.com/namedotget"
+        >
           <Image src="/x-logo.png" width={75} height={75} alt="" />
         </Link>
       </div>
