@@ -22,13 +22,13 @@ export default function Home() {
       </div> */}
       <div className="my-12 p-4 flex gap-[40%]">
         <Link
-          className="hover:scale-[1.1] transition-all duration-300"
+          className="hover:scale-[1.1] transition-all duration-300 opacity-80"
           href="https://github.com/colinmfoster4723"
         >
           <Image src="/github-mark.png" width={82} height={82} alt="" />
         </Link>
         <Link
-          className="hover:scale-[1.1] transition-all duration-300"
+          className="hover:scale-[1.1] transition-all duration-300 opacity-80"
           href="https://twitter.com/namedotget"
         >
           <Image src="/x-logo.png" width={75} height={75} alt="" />

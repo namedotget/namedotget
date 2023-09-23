@@ -25,3 +25,20 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+::-webkit-scrollbar-thumb {
+  border-bottom-left-radius: 25px;
+  border-top-left-radius: 25px;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #1d4a2c;
+}
+::-webkit-scrollbar-thumb {
+  background: #50c878;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--background-end-rgb));
+}
