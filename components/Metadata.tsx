@@ -18,11 +18,11 @@ export function Metadata() {
       <meta name="twitter:creator" content="@namedotget" />
       <meta name="twitter:title" content="name.get" />
       <meta name="twitter:description" content="a digital creator" />
-      <meta name="twitter:image" content="/namedotget.png" />
+      <meta name="twitter:image" content="/namedotget-icon.png" />
       <meta property="og:title" content="name.get" />
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://namedotget.com" />
-      <meta property="og:image" content="/namedotget.png" />
+      <meta property="og:image" content="/namedotget-icon.png" />
       <meta property="og:description" content="a digital creator" />
       <meta property="og:site_name" content="namedotget" />
     </Head>
