@@ -16,7 +16,7 @@ export function HeroScene() {
       meshRef.current.rotation.y += speed;
       meshRef.current.position.y = -window.scrollY / 500;
       camera.position.z = 5 + window.scrollY / 900;
-      spotRef.current.position.z = -3 + window.scrollY / 100;
+      spotRef.current.position.z = -3 + window.scrollY / 110;
       spotRef.current.position.y = -window.scrollY / 100;
     }
   });
@@ -31,7 +31,7 @@ export function HeroScene() {
         penumbra={0.75}
         intensity={500}
         scale={2}
-        color={"yellow"}
+        color={"lime"}
       />
       <mesh position={[0, 0, -1]}>
         <planeGeometry args={[100, 100]} />
