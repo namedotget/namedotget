@@ -22,6 +22,7 @@ export const CONTRIBUTIONS = [
   {
     name: "MoonDAO App",
     description: "Assisted as a fullstack developer.",
+    href: "https://app.moondao.com",
   },
 ];
 
