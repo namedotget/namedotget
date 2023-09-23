@@ -2,6 +2,7 @@
   "name": "namedotget",
   "version": "0.1.0",
   "private": true,
+  "author": "Colin M Foster",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

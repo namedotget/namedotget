@@ -5,6 +5,7 @@ import { PROJECTS, CONTRIBUTIONS, SKILLS } from "@/lib/config";
 import { Items } from "@/components/home/Items";
 import { Hero } from "@/components/home/Hero";
 import Link from "next/link";
+import { Metadata } from "@/components/Metadata";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -13,6 +14,7 @@ export default function Home() {
     <main
       className={`flex min-h-screen flex-col items-center justify-between p-8 ${inter.className}`}
     >
+      <Metadata />
       <Hero />
       <Items items={PROJECTS} label="Projects:" link />
       <Items items={CONTRIBUTIONS} label="Contributions:" link />
