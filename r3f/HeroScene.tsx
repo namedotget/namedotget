@@ -1,4 +1,5 @@
 //@ts-nocheck
+import { Physics } from "@react-three/cannon";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
 

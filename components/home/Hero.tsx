@@ -1,4 +1,5 @@
 import { HeroScene } from "@/r3f/HeroScene";
+import { Physics } from "@react-three/cannon";
 import { Canvas } from "@react-three/fiber";
 
 export function Hero() {
@@ -16,7 +17,7 @@ export function Hero() {
         </Canvas>
       </div>
       <button
-        className="text-[#00000080] relative top-[65vh] text-4xl"
+        className="text-[#00000080] relative top-[70vh] text-4xl"
         onClick={() =>
           window.scroll({ top: window.innerHeight, behavior: "smooth" })
         }
