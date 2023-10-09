@@ -28,7 +28,7 @@ export default function Home() {
     >
       <Metadata />
       <LightModeToggle
-        className="absolute right-[5%]"
+        className="absolute right-[5%] top-[15%] md:top-[5%]"
         lightMode={lightMode}
         setLightMode={setLightMode}
       />
