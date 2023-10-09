@@ -3,7 +3,7 @@ import { Physics } from "@react-three/cannon";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
 
-export function HeroScene() {
+export function HeroScene({ lightMode }: any) {
   const { camera } = useThree();
   const meshRef = useRef();
   const spotRef = useRef();
@@ -36,12 +36,12 @@ export function HeroScene() {
       />
       <mesh position={[0, 0, -1]}>
         <planeGeometry args={[100, 100]} />
-        <meshStandardMaterial color="#50C878" />
+        <meshStandardMaterial color={lightMode ? "#50C878" : "#1e1e1e"} />
       </mesh>
 
       <mesh ref={meshRef}>
         <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial color="#50C878" />
+        <meshStandardMaterial color={lightMode ? "#50C878" : "#1e1e1e"} />
       </mesh>
     </>
   );

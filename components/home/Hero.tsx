@@ -2,7 +2,7 @@ import { HeroScene } from "@/r3f/HeroScene";
 import { Physics } from "@react-three/cannon";
 import { Canvas } from "@react-three/fiber";
 
-export function Hero() {
+export function Hero({ lightMode }: any) {
   return (
     <div className="flex flex-col h-[100vh]">
       <div className="w-full">
@@ -13,7 +13,7 @@ export function Hero() {
       </div>
       <div className="fixed top-0 left-0 z-[-2] w-screen h-screen">
         <Canvas flat shadows>
-          <HeroScene />
+          <HeroScene lightMode={lightMode} />
         </Canvas>
       </div>
       <button

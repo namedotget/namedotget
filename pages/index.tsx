@@ -6,16 +6,33 @@ import { Items } from "@/components/home/Items";
 import { Hero } from "@/components/home/Hero";
 import Link from "next/link";
 import { Metadata } from "@/components/Metadata";
+import { LightModeToggle } from "@/components/LightModeToggle";
+import { useEffect, useState } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
+  const [lightMode, setLightMode] = useState(true);
+
+  useEffect(() => {
+    //set light mode from local storage
+    const storedLightMode = JSON.parse(
+      localStorage.getItem("lightMode") as string
+    );
+    setLightMode(storedLightMode);
+  }, []);
+
   return (
     <main
       className={`flex min-h-screen flex-col items-center justify-between p-8 ${inter.className}`}
     >
       <Metadata />
-      <Hero />
+      <LightModeToggle
+        className="absolute right-[5%]"
+        lightMode={lightMode}
+        setLightMode={setLightMode}
+      />
+      <Hero lightMode={lightMode} />
       <Items items={PROJECTS} label="Projects:" link />
       <Items items={CONTRIBUTIONS} label="Contributions:" link />
       <Items items={SKILLS} label="Skills:" />
