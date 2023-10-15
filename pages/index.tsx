@@ -19,7 +19,7 @@ export default function Home() {
     const storedLightMode = JSON.parse(
       localStorage.getItem("lightMode") as string
     );
-    setLightMode(storedLightMode);
+    if (storedLightMode === null) setLightMode(storedLightMode);
   }, []);
 
   return (
