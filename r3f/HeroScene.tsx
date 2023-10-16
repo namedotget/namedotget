@@ -32,7 +32,7 @@ export function HeroScene({ lightMode }: any) {
         penumbra={0.75}
         intensity={150}
         scale={2}
-        color={"lime"}
+        color={lightMode ? "lime" : "white"}
       />
       <mesh position={[0, 0, -1]}>
         <planeGeometry args={[100, 100]} />
