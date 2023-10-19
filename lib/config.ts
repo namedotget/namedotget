@@ -67,7 +67,6 @@ export const SKILLS = [
   },
   {
     name: "Shipping",
-    description:
-      "I'm all about writing quality code and shipping it. I like to get shit done.",
+    description: "I'm all about writing quality code and shipping it!",
   },
 ];
