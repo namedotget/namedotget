@@ -7,6 +7,11 @@ export const PROJECTS = [
     href: "https://re4est.xyz",
   },
   {
+    name: "Jumpr",
+    description: "First person platform game",
+    href: "https://jumpr.netlify.app/",
+  },
+  {
     name: "Soundcloud DJ",
     description: "Soundcloud Embed & Visualizer for Soundcloud DJs",
     href: "https://hanzwulf.com",
