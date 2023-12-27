@@ -1,11 +1,13 @@
 //@ts-nocheck
 import { useFrame, useThree } from "@react-three/fiber";
-import { useRef } from "react";
-
+import { useEffect, useRef } from "react";
+import { MouseLight } from "./MouseLight";
+import * as THREE from "three";
 export function HeroScene({ lightMode }: any) {
   const { camera } = useThree();
   const meshRef = useRef();
   const spotRef = useRef();
+  const backgroundRef = useRef();
 
   useFrame(() => {
     if (meshRef.current) {
@@ -21,6 +23,43 @@ export function HeroScene({ lightMode }: any) {
     }
   });
 
+  function handleKeyPress(e) {
+    if (e.key === "r") {
+      meshRef.current.material.color = new THREE.Color("darkRed");
+      backgroundRef.current.material.color = new THREE.Color("darkRed");
+      spotRef.current.color = new THREE.Color("red");
+    }
+    if (e.key === "h") {
+      meshRef.current.material.color = new THREE.Color("green");
+      backgroundRef.current.material.color = new THREE.Color("green");
+    }
+
+    if (e.key === "w") {
+      meshRef.current.material.color = new THREE.Color("white");
+      backgroundRef.current.material.color = new THREE.Color("white");
+      spotRef.current.color = new THREE.Color("white");
+    }
+
+    if (e.key === "a") {
+      meshRef.current.material.color = new THREE.Color("cyan");
+      backgroundRef.current.material.color = new THREE.Color("cyan");
+      spotRef.current.color = new THREE.Color("cyan");
+    }
+
+    if (e.key === "b") {
+      meshRef.current.material.color = new THREE.Color("black");
+      backgroundRef.current.material.color = new THREE.Color("black");
+      spotRef.current.color = new THREE.Color("black");
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener("keypress", handleKeyPress);
+    return () => {
+      document.removeEventListener("keypress", handleKeyPress);
+    };
+  }, []);
+
   return (
     <>
       <ambientLight intensity={0.95} />
@@ -33,7 +72,7 @@ export function HeroScene({ lightMode }: any) {
         scale={2}
         color={lightMode ? "lime" : "white"}
       />
-      <mesh position={[0, 0, -1]}>
+      <mesh position={[0, 0, -1]} ref={backgroundRef}>
         <planeGeometry args={[100, 100]} />
         <meshStandardMaterial color={lightMode ? "#50C878" : "#1e1e1e"} />
       </mesh>
