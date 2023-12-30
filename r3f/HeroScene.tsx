@@ -81,6 +81,8 @@ export function HeroScene({ lightMode }: any) {
         <boxGeometry args={[2, 2, 2]} />
         <meshStandardMaterial color={lightMode ? "#50C878" : "#1e1e1e"} />
       </mesh>
+
+      <fog attach="fog" args={["#ffffff", 0, 15]} />
     </>
   );
 }
