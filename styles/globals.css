@@ -40,5 +40,5 @@ body {
   background: #50c878;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--background-end-rgb));
+  background: #90fcb4;
 }
