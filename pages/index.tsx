@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 
 import { PROJECTS, CONTRIBUTIONS, SKILLS } from "@/lib/config";
 import { Items } from "@/components/Items";
-import { Hero } from "@/components/BackgroundScroll";
 import Link from "next/link";
 import { Metadata } from "@/components/Metadata";
 import { LightModeToggle } from "@/components/LightModeToggle";
