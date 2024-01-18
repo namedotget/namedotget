@@ -14,7 +14,9 @@ export function Items({ items, label, link = false }: any) {
           >
             <div className="flex items-center">
               <div className="ml-4">
-                <h2 className="text-lg font-semibold">{item.name}</h2>
+                <h2 className="text-lg font-semibold text-ndgGreen">
+                  {item.name}
+                </h2>
                 <p className="text-sm text-[#a0a0a0] w-full">
                   {item.description}
                 </p>
