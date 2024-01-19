@@ -13,9 +13,19 @@ const generateEmailContent = (data: any) => {
       (str += `${CONTACT_MESSAGE_FIELDS[key]}: \n${val} \n \n`),
     ""
   );
-  const htmlData = Object.entries(data).reduce((str, [key, val]) => {
-    return (str += `<h3 class="form-heading" align="left">${CONTACT_MESSAGE_FIELDS[key]}</h3><p class="form-answer" align="left">${val}</p>`);
-  }, "");
+
+  const { name, email, message } = JSON.parse(data);
+
+  const htmlData = `
+  <div>
+  <label for="name"><strong>Name</strong></label>
+  <p>${name}</p>
+  <label for="email"><strong>Email</strong></label>
+  <p>${email}</p>
+  <label for="message"><strong>Message</strong></label>
+  <p>${message}</p>
+  </div>
+  `;
 
   return {
     text: stringData,
@@ -26,7 +36,7 @@ const generateEmailContent = (data: any) => {
 const handler = async (req: any, res: any) => {
   if (req.method === "POST") {
     const data = req.body;
-    if (!data || !data.name || !data.email || !data.subject || !data.message) {
+    if (!data) {
       return res.status(400).send({ message: "Bad request" });
     }
 
@@ -34,7 +44,7 @@ const handler = async (req: any, res: any) => {
       await transporter.sendMail({
         ...mailOptions,
         ...generateEmailContent(data),
-        subject: data.subject,
+        subject: "Namedotget Contact Message",
       });
 
       return res.status(200).json({ success: true });
@@ -43,6 +53,5 @@ const handler = async (req: any, res: any) => {
       return res.status(400).json({ message: err.message });
     }
   }
-  return res.status(400).json({ message: "Bad request" });
 };
 export default handler;

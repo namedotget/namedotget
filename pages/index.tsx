@@ -5,8 +5,6 @@ import { PROJECTS, CONTRIBUTIONS, SKILLS } from "@/lib/config";
 import { Items } from "@/components/Items";
 import Link from "next/link";
 import { Metadata } from "@/components/Metadata";
-import { LightModeToggle } from "@/components/LightModeToggle";
-import { useEffect, useState } from "react";
 import { Contact } from "@/components/Contact";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,7 +19,7 @@ export default function Home() {
       <Items items={PROJECTS} label="Projects:" link />
       <Items items={CONTRIBUTIONS} label="Contributions:" link />
       <Items items={SKILLS} label="Skills:" />
-      {/* <Contact /> */}
+      <Contact />
       {/* <div className="mt-4 px-4 py-2 w-full md:w-1/2 glass h-full bg-[#1d1d1d] rounded-md">
         <p>Contact Me : colin@namedotget.com</p>
       </div> */}

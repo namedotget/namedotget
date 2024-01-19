@@ -1,24 +1,43 @@
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { Captcha } from "./Captcha";
 
 export function Contact() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
+  const [verified, setVerified] = useState(false);
+
   function resetContactForm() {
     setName("");
     setEmail("");
     setMessage("");
+    setVerified(false);
   }
 
-  function submitContactForm() {
+  async function submitContactForm() {
     if (!email.includes("@") || message.trim() === "")
       return toast.error("Please fill out all required fields.");
+    if (!verified) return toast.error("Please verify you're not a robot.");
     else {
-      toast.success("Message sent!");
-      resetContactForm();
+      try {
+        const res = await fetch("/api/contact", {
+          method: "POST",
+          body: JSON.stringify({
+            name,
+            email,
+            message,
+          }),
+        });
+        console.log(res);
+        toast.success("Message sent!");
+        resetContactForm();
+      } catch (e: any) {
+        toast.error("Message failed to send.");
+        console.error(e);
+      }
     }
   }
 
@@ -57,6 +76,9 @@ export function Contact() {
             value={message}
           ></textarea>
         </div>
+        {email.includes("@") && message.trim() !== "" && (
+          <Captcha verified={verified} setVerified={setVerified} />
+        )}
         <button
           className="w-3/4 bg-ndgGreen text-black hover:scale-105 transition-all duration-300 rounded-md p-2"
           onClick={submitContactForm}
