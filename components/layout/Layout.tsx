@@ -11,7 +11,7 @@ export function Layout({ children }: any) {
     const storedLightMode = JSON.parse(
       localStorage.getItem("lightMode") as string
     );
-    if (storedLightMode === null) setLightMode(storedLightMode);
+    if (storedLightMode != null) setLightMode(storedLightMode);
   }, []);
   return (
     <>
