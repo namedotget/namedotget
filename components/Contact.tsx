@@ -86,7 +86,7 @@ export function Contact() {
           Submit
         </button>
 
-        <Link className="mt-2" href="/">
+        <Link className="mt-2" href="/privacy">
           Privacy Policy
         </Link>
       </div>
