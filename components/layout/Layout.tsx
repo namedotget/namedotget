@@ -1,7 +1,7 @@
 import { Toaster } from "react-hot-toast";
-import { BackgroundScroll } from "./BackgroundScroll";
 import { useEffect, useState } from "react";
-import { LightModeToggle } from "./LightModeToggle";
+import { LightModeToggle } from "../LightModeToggle";
+import { BackgroundScroll } from "./BackgroundScroll";
 
 export function Layout({ children }: any) {
   const [lightMode, setLightMode] = useState(true);
@@ -22,6 +22,7 @@ export function Layout({ children }: any) {
         setLightMode={setLightMode}
       />
       {children}
+
       <Toaster />
     </>
   );
