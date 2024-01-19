@@ -18,12 +18,7 @@
 
 body {
   color: #e8e8e8;
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color: #50c878;
 }
 ::-webkit-scrollbar-thumb {
   border-bottom-left-radius: 25px;
