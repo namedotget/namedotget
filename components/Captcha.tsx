@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export function Captcha({ verified, setVerified }: any) {
   const [randomNum1, setRandomNum1] = useState(5);

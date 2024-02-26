@@ -1,12 +1,5 @@
 export const PROJECTS = [
   {
-    name: "Re4estXYZ",
-    description:
-      "Plant virtual trees and help the environment (work in progress)",
-    image: "",
-    href: "https://re4est.xyz",
-  },
-  {
     name: "Jumpr",
     description: "First person platform game",
     href: "https://jumpr.netlify.app/",
