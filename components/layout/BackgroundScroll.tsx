@@ -19,14 +19,16 @@ export function BackgroundScroll({ lightMode }: any) {
           <HeroScene lightMode={lightMode} />
         </Canvas>
       </div>
-      <button
-        className="text-[#00000080] relative top-[70vh] text-4xl"
-        onClick={() =>
-          window.scroll({ top: window.innerHeight, behavior: "smooth" })
-        }
-      >
-        ↓
-      </button>
+      <div className="w-full flex justify-center">
+        <button
+          className="w-[50px] text-[#00000080] relative top-[70vh] text-4xl"
+          onClick={() =>
+            window.scroll({ top: window.innerHeight, behavior: "smooth" })
+          }
+        >
+          ↓
+        </button>
+      </div>
     </div>
   );
 }

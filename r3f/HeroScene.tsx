@@ -49,10 +49,9 @@ export function HeroScene({ lightMode }: any) {
       <ambientLight intensity={0.95} />
       <pointLight
         position={[0, 0, 2]}
-        intensity={lightMode ? 10 : 100}
+        intensity={lightMode ? 5 : 100}
         ref={mouseLightRef}
         color={"white"}
-        scale={0.1}
       />
       <spotLight
         ref={spotRef}
@@ -64,12 +63,15 @@ export function HeroScene({ lightMode }: any) {
       />
       <mesh position={[0, 0, -1]} ref={backgroundRef}>
         <planeGeometry args={[100, 100]} />
-        <meshStandardMaterial color={lightMode ? "#50C878" : "#1e1e1e"} />
+        <meshLambertMaterial color={lightMode ? "#50C878" : "#1e1e1e"} />
       </mesh>
 
       <mesh ref={meshRef}>
         <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial color={lightMode ? "#50C878" : "#1e1e1e"} />
+        <meshStandardMaterial
+          color={lightMode ? "#50C878" : "#1e1e1e"}
+          roughness={10}
+        />
       </mesh>
 
       <fog attach="fog" args={["#ffffff", 0, 15]} />
