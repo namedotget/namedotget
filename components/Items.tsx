@@ -37,11 +37,11 @@ function Item({ item, link, index, arrLength }: any) {
 
 export function Items({ items, label, link = false }: any) {
   return (
-    <div className="mt-4 flex flex-col gap-2 justify-center w-full md:w-1/2">
+    <div className="mt-4 flex flex-col gap-2 justify-center w-full">
       <h1 className="font-bold text-2xl  text-center text-[#00000080]">
         {label}
       </h1>
-      <div className="px-4 py-2 w-full glass h-full rounded-md">
+      <div className="w-full glass h-full rounded-md">
         {items.map((item: any, i: number, arr: any[]) =>
           link ? (
             <Link

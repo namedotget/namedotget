@@ -16,10 +16,12 @@ export default function Home() {
     >
       <Metadata />
       {/* <Hero lightMode={lightMode} /> */}
-      <Items items={PROJECTS} label="Projects:" link />
-      <Items items={CONTRIBUTIONS} label="Contributions:" link />
-      <Items items={SKILLS} label="Skills:" />
-      <Contact />
+      <div className="w-full max-w-[600px]">
+        <Items items={PROJECTS} label="Projects:" link />
+        <Items items={CONTRIBUTIONS} label="Contributions:" link />
+        <Items items={SKILLS} label="Skills:" />
+        <Contact />
+      </div>
       {/* <div className="mt-4 px-4 py-2 w-full md:w-1/2 glass h-full bg-[#1d1d1d] rounded-md">
         <p>Contact Me : colin@namedotget.com</p>
       </div> */}

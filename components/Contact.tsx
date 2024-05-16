@@ -45,7 +45,7 @@ export function Contact() {
       <h1 className="mt-4 font-bold text-2xl text-center text-[#00000080]">
         {"Contact:"}
       </h1>
-      <div className="mt-2 p-4 w-full flex flex-col items-center gap-2 md:w-1/2 glass h-full bg-[#1d1d1d] rounded-md text-ndgGreen">
+      <div className="mt-2 p-4 w-full flex flex-col items-center gap-2 glass h-full bg-[#1d1d1d] rounded-md text-ndgGreen">
         <div className="w-full">
           <label className="font-semibold">Name :</label>
           <input
@@ -56,7 +56,7 @@ export function Contact() {
         </div>
         <div className="w-full">
           <label className="font-semibold">
-            Email<span className="text-[tomato]">*</span> :
+            Email<span className="text-[tomato] px-1">*</span> :
           </label>
           <input
             className="w-full rounded-md px-2 bg-[#ffffff25]"
@@ -66,7 +66,7 @@ export function Contact() {
         </div>
         <div className="w-full">
           <label className="font-semibold">
-            Message<span className="text-[tomato]">*</span> :
+            Message<span className="text-[tomato] px-1">*</span> :
           </label>
           <textarea
             className="w-full h-32 rounded-md px-2 bg-[#ffffff25]"
