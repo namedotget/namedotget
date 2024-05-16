@@ -1,13 +1,34 @@
 //@ts-nocheck
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
-import { MouseLight } from "./MouseLight";
 import * as THREE from "three";
 export function HeroScene({ lightMode }: any) {
   const { camera } = useThree();
   const meshRef = useRef();
   const spotRef = useRef();
+  const mouseLightRef = useRef();
   const backgroundRef = useRef();
+
+  function lightFollowMouse(e) {
+    //return if mobile
+    if (window.innerWidth < 768) return;
+    const mouseLight = mouseLightRef.current as THREE.PointLight;
+    const mouse = new THREE.Vector2();
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(backgroundRef.current);
+    if (intersects.length > 0) {
+      const { x, y } = intersects[0].point;
+      mouseLight.position.set(x, y, 2);
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener("mousemove", lightFollowMouse);
+    return () => window.removeEventListener("mousemove", lightFollowMouse);
+  }, []);
 
   useFrame(() => {
     if (meshRef.current) {
@@ -26,7 +47,13 @@ export function HeroScene({ lightMode }: any) {
   return (
     <>
       <ambientLight intensity={0.95} />
-      <spotLight position={[0, 0, 4]} penumbra={1} intensity={70} scale={2} />
+      <pointLight
+        position={[0, 0, 2]}
+        intensity={lightMode ? 10 : 100}
+        ref={mouseLightRef}
+        color={"white"}
+        scale={0.1}
+      />
       <spotLight
         ref={spotRef}
         position={[0, 0, 10]}
