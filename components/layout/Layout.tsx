@@ -18,7 +18,7 @@ export function Layout({ children }: any) {
     <>
       <BackgroundScroll lightMode={lightMode} />
       <LightModeToggle
-        className="absolute right-[5%] top-[15%] md:top-[5%]"
+        className="absolute right-[5%] top-[18%] md:top-[5%] md:top-[5%]"
         lightMode={lightMode}
         setLightMode={setLightMode}
       />
