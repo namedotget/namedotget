@@ -21,10 +21,6 @@ body {
   background-color: #7bb08c;
 }
 
-h5 {
-  font-size: 1.2rem;
-}
-
 ::-webkit-scrollbar-thumb {
   border-bottom-left-radius: 25px;
   border-top-left-radius: 25px;
