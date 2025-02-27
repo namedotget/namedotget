@@ -13,11 +13,6 @@ export const PROJECTS = [
 
 export const CONTRIBUTIONS = [
   {
-    name: "MoonDAO Marketplace",
-    description: "Lead the project as a fullstack developer.",
-    href: "https://market.moondao.com",
-  },
-  {
     name: "MoonDAO App",
     description: "Assisted as a fullstack developer.",
     href: "https://app.moondao.com",
