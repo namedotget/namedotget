@@ -48,7 +48,7 @@ export function Items({ items, label, link = false }: any) {
               key={i}
               href={link ? item.href : ""}
               target="_blank"
-              rel="no refferer"
+              rel="noreferrer"
             >
               <Item item={item} link={link} index={i} arrLength={arr.length} />
             </Link>
