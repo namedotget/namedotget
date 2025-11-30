@@ -1,6 +1,6 @@
 ## [name].get
 
-Founder • Full-Stack Builder • Open-source Contributor • AI Orchestrator • Web3 Engineer • Indie App Dev
+**Founder • Full-Stack Builder • Open-source Contributor • AI Orchestrator • Web3 Engineer • Indie App Dev**
 
 I build products end-to-end, 
 from iOS apps to DAOs, from AI pipelines to pixel-art worlds, from local hardware clusters to planet-scale React apps.
