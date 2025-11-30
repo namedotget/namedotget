@@ -9,7 +9,7 @@ from iOS apps to DAOs, from AI pipelines to pixel-art worlds, from local hardwar
 
 Next.js 13/15, React, TypeScript
 
-TailwindCSS, CSS Architecture
+TailwindCSS, CSS, SCSS
 
 Pixel-art engines, dynamic UIs, custom components
 
