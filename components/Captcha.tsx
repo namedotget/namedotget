@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type QuestionType = "color" | "position" | "comparison";
 
@@ -10,7 +10,7 @@ export function Captcha({ verified, setVerified }: any) {
   const [questionType, setQuestionType] = useState<QuestionType>("color");
   const [isAnimating, setIsAnimating] = useState(false);
 
-  function resetCaptcha() {
+  const resetCaptcha = useCallback(() => {
     setRandomNum1(Math.floor(Math.random() * 10));
     setRandomNum2(Math.floor(Math.random() * 10));
     setInputValue("");
@@ -20,7 +20,7 @@ export function Captcha({ verified, setVerified }: any) {
     const types: QuestionType[] = ["color", "position", "comparison"];
     setQuestionType(types[Math.floor(Math.random() * types.length)]);
     setTimeout(() => setIsAnimating(false), 300);
-  }
+  }, [setVerified]);
 
   function getQuestionText(): string {
     switch (questionType) {
@@ -74,7 +74,7 @@ export function Captcha({ verified, setVerified }: any) {
 
   useEffect(() => {
     resetCaptcha();
-  }, []);
+  }, [resetCaptcha]);
 
   const correctAnswer = randomNum1 + randomNum2;
 
@@ -106,14 +106,14 @@ export function Captcha({ verified, setVerified }: any) {
               </svg>
             </div>
             <p className="text-ndgGreen font-semibold font-mono">
-              Verified! You're human
+              Verified! You&apos;re human
             </p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-center gap-2 text-sm text-[#e8e8e8] font-mono">
               <span className="text-ndgGreen/60">{"//"}</span>
-              <span>Prove you're human:</span>
+              <span>Prove you&apos;re human:</span>
             </div>
 
             <div className="flex items-center justify-center gap-3">
