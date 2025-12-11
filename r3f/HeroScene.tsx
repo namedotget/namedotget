@@ -5,7 +5,7 @@ import { CircuitBox } from "./CircuitMaterial";
 import { WireWall } from "./WireWallMaterial";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 
-export function HeroScene({ lightMode }: any) {
+export function HeroScene({ lightMode }: { lightMode: boolean }) {
   const { camera } = useThree();
   const meshRef = useRef();
   const backgroundRef = useRef();

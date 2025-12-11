@@ -1,8 +1,8 @@
 import { Toaster } from "react-hot-toast";
 import { useEffect, useState } from "react";
-import { LightModeToggle } from "../LightModeToggle";
 import { BackgroundScroll } from "./BackgroundScroll";
 import { Footer } from "./Footer";
+import { ToggleMesh } from "@/r3f/ToggleMesh";
 
 export function Layout({ children }: any) {
   const [lightMode, setLightMode] = useState(true);
@@ -24,11 +24,7 @@ export function Layout({ children }: any) {
   return (
     <>
       <BackgroundScroll lightMode={lightMode} />
-      <LightModeToggle
-        className="absolute right-[5%] top-[18%] md:top-[5%] md:top-[5%]"
-        lightMode={lightMode}
-        setLightMode={setLightMode}
-      />
+      <ToggleMesh lightMode={lightMode} setLightMode={setLightMode} />
       {children}
       <Footer />
       <Toaster
