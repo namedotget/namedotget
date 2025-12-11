@@ -1,5 +1,9 @@
 export const PROJECTS = [
   {
+    name: "v0-lite",
+    description: "A portable local AI cluster",
+  },
+  {
     name: "Jumpr",
     description: "First person platform game",
     href: "https://jumpr.netlify.app/",
@@ -13,9 +17,14 @@ export const PROJECTS = [
 
 export const CONTRIBUTIONS = [
   {
-    name: "MoonDAO App",
-    description: "Assisted as a fullstack developer.",
-    href: "https://app.moondao.com",
+    name: "MoonDAO",
+    description: "Contributed as a Lead Developer (Over 1400+ commits)",
+    href: "https://moondao.com",
+  },
+  {
+    name: "MoonDAO Townhall Summarizer",
+    description: "Built v1.0.0",
+    href: "https://moondao.com/townhall",
   },
 ];
 
