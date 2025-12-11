@@ -7,12 +7,14 @@ export default function PrivacyPolicy() {
     }, 500);
   }, []);
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-8 `}
-    >
-      <div className="text-black">
-        <h1 className="text-2xl font-semibold">Privacy Policy</h1>
-        <p>Last updated: January 18, 2024</p>
+    <main className="flex min-h-screen flex-col items-center px-4 py-8 md:px-8">
+      <div className="mt-12 w-full max-w-4xl glass rounded-lg p-6 md:p-8 prose-privacy">
+        <h1 className="text-2xl font-bold text-ndgGreen mb-1">
+          Privacy Policy
+        </h1>
+        <p className="text-[#606060] text-sm mb-6">
+          Last updated: January 18, 2024
+        </p>
         <p>
           This Privacy Policy describes Our policies and procedures on the
           collection, use and disclosure of Your information when You use the
@@ -539,6 +541,67 @@ export default function PrivacyPolicy() {
           </li>
         </ul>
       </div>
+
+      <style jsx global>{`
+        .prose-privacy h2 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #50c878;
+          margin-top: 2rem;
+          margin-bottom: 0.75rem;
+        }
+        .prose-privacy h3 {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #50c878cc;
+          margin-top: 1.5rem;
+          margin-bottom: 0.5rem;
+        }
+        .prose-privacy h4 {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #50c878aa;
+          margin-top: 1.25rem;
+          margin-bottom: 0.5rem;
+        }
+        .prose-privacy p {
+          color: #a0a0a0;
+          font-size: 0.875rem;
+          line-height: 1.7;
+          margin-bottom: 0.75rem;
+        }
+        .prose-privacy ul {
+          margin: 0.75rem 0;
+          padding-left: 1.25rem;
+        }
+        .prose-privacy li {
+          color: #a0a0a0;
+          font-size: 0.875rem;
+          line-height: 1.7;
+          margin-bottom: 0.5rem;
+          list-style: none;
+          position: relative;
+          padding-left: 1rem;
+        }
+        .prose-privacy li::before {
+          content: ">";
+          position: absolute;
+          left: 0;
+          color: #50c87860;
+        }
+        .prose-privacy strong {
+          color: #e8e8e8;
+          font-weight: 600;
+        }
+        .prose-privacy a {
+          color: #50c878;
+          text-decoration: none;
+          transition: opacity 0.2s;
+        }
+        .prose-privacy a:hover {
+          opacity: 0.8;
+        }
+      `}</style>
     </main>
   );
 }

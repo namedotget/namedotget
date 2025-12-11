@@ -13,22 +13,35 @@ function Item({ item, link, index, arrLength }: any) {
 
   return (
     <div
-      className={`min-h-[100px] flex items-start justify-between p-4 border-b border-[#2d2d2d] bg-[#1d1d1d] ${
-        isFirst ? "rounded-t-md" : isLast ? "rounded-b-md" : ""
-      } ease-in-out duration-300 hover:bg-[#2d2d2d]`}
+      className={`min-h-[80px] flex items-start justify-between p-5 border-b border-[#2d2d2d] bg-[#1d1d1d] ${
+        isFirst ? "rounded-t-lg" : isLast ? "rounded-b-lg border-b-0" : ""
+      } ease-in-out duration-300 hover:bg-[#252525] ${
+        link ? "hover:border-l-2 hover:border-l-ndgGreen hover:pl-[18px]" : ""
+      }`}
       onMouseOver={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
       <div className="flex items-center">
-        <div className="ml-4">
+        <div>
           <h2
             className={`text-lg font-semibold text-ndgGreen ease-in-out duration-300 ${
-              link && hover && "text-[125%]"
+              link && hover && "translate-x-1"
             }`}
           >
             {item.name}
+            {link && (
+              <span
+                className={`ml-2 text-sm opacity-0 transition-opacity duration-300 ${
+                  hover && "opacity-60"
+                }`}
+              >
+                {"->"}
+              </span>
+            )}
           </h2>
-          <p className="text-sm text-[#a0a0a0] w-full">{item.description}</p>
+          <p className="text-sm text-[#a0a0a0] w-full mt-1 leading-relaxed">
+            {item.description}
+          </p>
         </div>
       </div>
     </div>
@@ -37,11 +50,11 @@ function Item({ item, link, index, arrLength }: any) {
 
 export function Items({ items, label, link = false }: any) {
   return (
-    <div className="mt-4 flex flex-col gap-2 justify-center w-full">
-      <h1 className="font-bold text-2xl  text-center text-[#00000080]">
+    <div className="mt-6 flex flex-col gap-3 justify-center w-full font-mono">
+      <h1 className="font-bold text-2xl text-center text-[#00000080]">
         {label}
       </h1>
-      <div className="w-full glass h-full rounded-md">
+      <div className="w-full glass h-full rounded-lg overflow-hidden border border-[#2d2d2d]">
         {items.map((item: any, i: number, arr: any[]) =>
           link ? (
             <Link

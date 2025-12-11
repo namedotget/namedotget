@@ -19,47 +19,54 @@ export const CONTRIBUTIONS = [
   },
 ];
 
-export const SKILLS = [
+export const SKILL_CATEGORIES = [
   {
-    name: "NextJS & React",
-    description:
-      "I'm very comfortable creating components and hooks in React using a NextJS framework.",
+    name: "Frontend",
+    skills: [
+      "Next.js 13/15, React, TypeScript",
+      "TailwindCSS, CSS, SCSS",
+      "ThreeJS, React Three Fiber, Cannon physics",
+      "Pixel-art engines, dynamic UIs, custom components",
+      "Expo / React Native for cross-platform apps",
+    ],
   },
   {
-    name: "Web3 Frontend",
-    description:
-      "I have experience creating frontends for web3 applications using ethers.js, web3.js, wagmi, thirdweb and thegraph.com.",
+    name: "Backend",
+    skills: [
+      "Node.js, Express, FastAPI, Python",
+      "Firebase (Auth, Firestore, Storage), Upstash Redis",
+      "Cloud Run, Fly.io machines, Vercel edge functions",
+      "WebSockets, streaming AI responses, agent routing",
+      "DiscordJS bots, API integrations",
+    ],
   },
   {
-    name: "Smart Contracts",
-    description:
-      "I have experience creating smart contracts using solidity and remix.",
+    name: "AI / Automation",
+    skills: [
+      "Orchestration engines (OpenAI, Anthropic, local inference)",
+      "Whisper, GPT-3.5/4/5 pipelines, vector embeddings",
+      "Local workers on Raspberry Pi 4, Mac, portable clusters",
+      "Automatic summarizers, email pipelines, event processors",
+    ],
   },
   {
-    name: "TypeScript",
-    description: "I use typescript for everything, even my personal projects.",
+    name: "Web3 / Crypto",
+    skills: [
+      "Thirdweb, Safe (multi-sig + modules), Tableland",
+      "On-chain systems, ERC-20/721/1155, DAO governance patterns",
+      "Coinbase & Stripe onramps, identity flows",
+      "ethers.js, web3.js, wagmi, thegraph.com",
+      "Solidity smart contracts",
+    ],
   },
   {
-    name: "ThreeJS & R3F",
-    description:
-      "I enjoy creating 3D experiences using ThreeJS, React three fiber and Cannon physics.",
-  },
-
-  {
-    name: "CSS, SASS, and TailwindCSS",
-    description:
-      "I frequently use CSS, SASS, and TailwindCSS to style my projects.",
-  },
-  {
-    name: "DiscordJS",
-    description: "I've developed several discord bots using DiscordJS.",
-  },
-  {
-    name: "Cypress",
-    description: "I use Cypress for e2e & integration testing.",
-  },
-  {
-    name: "Shipping",
-    description: "I'm all about writing quality code and shipping it!",
+    name: "DevOps / Infra",
+    skills: [
+      "GitHub Actions, CI/CD, Docker, Cloudflare",
+      "Deploying at scale on Vercel + Fly.io",
+      "Building private API gateways, firewalls, network mode switching",
+      "Linux, Raspberry Pi OS, environment orchestration",
+      "Cypress for e2e & integration testing",
+    ],
   },
 ];
