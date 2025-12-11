@@ -16,6 +16,7 @@ function CellTile({
   seed,
   lightMode,
   behavior,
+  canGlow,
 }: {
   basePosition: [number, number, number];
   normal: [number, number, number];
@@ -23,12 +24,15 @@ function CellTile({
   seed: number;
   lightMode: boolean;
   behavior: "static" | "rare" | "normal" | "frequent";
+  canGlow: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>();
   const materialRef = useRef<THREE.MeshStandardMaterial>();
   const [targetExtrude, setTargetExtrude] = useState(0);
   const [currentExtrude, setCurrentExtrude] = useState(0);
   const [nextChangeTime, setNextChangeTime] = useState(seededRandom(seed) * 5);
+  const [isGlowing, setIsGlowing] = useState(false);
+  const [glowIntensity, setGlowIntensity] = useState(0);
 
   // Behavior determines how often and how much cells move
   const behaviorConfig = useMemo(() => {
@@ -60,6 +64,11 @@ function CellTile({
           seededRandom(seed + time * 200) *
             (behaviorConfig.maxWait - behaviorConfig.minWait)
       );
+
+      // Trigger glow when extruding (higher chance)
+      if (canGlow && shouldExtrude && seededRandom(seed + time * 300) > 0.3) {
+        setIsGlowing(true);
+      }
     }
 
     const newExtrude = THREE.MathUtils.lerp(
@@ -69,6 +78,17 @@ function CellTile({
     );
     setCurrentExtrude(newExtrude);
 
+    // Fade glow based on extrusion - glow fades as cell retracts
+    if (isGlowing) {
+      const targetGlow = currentExtrude > 0.02 ? 1.0 : 0;
+      const newGlow = THREE.MathUtils.lerp(glowIntensity, targetGlow, 0.04);
+      setGlowIntensity(newGlow);
+      if (newGlow < 0.01) {
+        setIsGlowing(false);
+        setGlowIntensity(0);
+      }
+    }
+
     if (meshRef.current) {
       meshRef.current.position.set(
         basePosition[0] + normal[0] * newExtrude,
@@ -77,7 +97,7 @@ function CellTile({
       );
     }
 
-    // Animate emissive based on movement
+    // Animate emissive based on movement and glow state
     if (materialRef.current) {
       const isMoving = Math.abs(currentExtrude - targetExtrude) > 0.005;
       const extrudeRatio = currentExtrude / 0.2;
@@ -86,19 +106,27 @@ function CellTile({
       const movingBoost = isMoving ? 0.3 : 0;
 
       if (lightMode) {
-        // Emerald green, not lime
+        // Emerald green glow
+        const glowBoost = glowIntensity * 1.2;
         materialRef.current.emissive.setRGB(
-          0.02 * (baseIntensity + movingBoost),
-          0.12 * (baseIntensity + movingBoost),
-          0.08 * (baseIntensity + movingBoost)
+          (0.02 + glowBoost * 0.25) * (baseIntensity + movingBoost + glowBoost),
+          (0.12 + glowBoost * 0.75) * (baseIntensity + movingBoost + glowBoost),
+          (0.08 + glowBoost * 0.5) * (baseIntensity + movingBoost + glowBoost)
         );
       } else {
-        // Black gunmetal - muted green accent only when moving/extended
-        const greenAccent = isMoving ? 0.08 : extrudeRatio > 0.1 ? 0.04 : 0;
+        // Black gunmetal - glow when glowing, otherwise muted
+        const glowBoost = glowIntensity * 1.6;
+        const greenAccent = isGlowing
+          ? 0.6 * glowIntensity
+          : isMoving
+          ? 0.08
+          : extrudeRatio > 0.1
+          ? 0.04
+          : 0;
         materialRef.current.emissive.setRGB(
-          0.01 * (baseIntensity + movingBoost),
-          greenAccent * (baseIntensity + movingBoost),
-          0.01 * (baseIntensity + movingBoost)
+          (0.01 + glowBoost * 0.12) * (baseIntensity + movingBoost),
+          greenAccent * (baseIntensity + movingBoost) + glowBoost * 0.38,
+          (0.01 + glowBoost * 0.18) * (baseIntensity + movingBoost)
         );
       }
     }
@@ -288,6 +316,7 @@ export function CircuitBox({
       normal: [number, number, number];
       seed: number;
       behavior: "static" | "rare" | "normal" | "frequent";
+      canGlow: boolean;
     }> = [];
 
     const gridSize = 5;
@@ -343,11 +372,16 @@ export function CircuitBox({
             behavior = "frequent"; // 20% move often
           }
 
+          // ~40% of non-static cells can glow
+          const canGlow =
+            behavior !== "static" && seededRandom(seed + 500) > 0.6;
+
           items.push({
             position: pos,
             normal: face.normal,
             seed,
             behavior,
+            canGlow,
           });
         }
       }
@@ -376,6 +410,7 @@ export function CircuitBox({
           seed={cell.seed}
           lightMode={lightMode}
           behavior={cell.behavior}
+          canGlow={cell.canGlow}
         />
       ))}
     </group>

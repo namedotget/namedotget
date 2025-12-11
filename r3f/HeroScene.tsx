@@ -57,9 +57,9 @@ export function HeroScene({ lightMode }: any) {
 
       <EffectComposer>
         <Bloom
-          intensity={isMobile ? 0.5 : 1.0}
+          intensity={isMobile ? 0.6 : 1.1}
           luminanceThreshold={0.15}
-          luminanceSmoothing={0.8}
+          luminanceSmoothing={0.75}
           mipmapBlur
         />
       </EffectComposer>
