@@ -18,7 +18,7 @@ export const PROJECTS = [
 export const CONTRIBUTIONS = [
   {
     name: "MoonDAO",
-    description: "Contributed as a Lead Developer (Over 1400+ commits)",
+    description: "Contributed as a Lead Developer (Over 1,400+ commits)",
     href: "https://moondao.com",
   },
   {
