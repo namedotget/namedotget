@@ -1,11 +1,25 @@
 import { Toaster } from "react-hot-toast";
 import { useEffect, useState } from "react";
-import { BackgroundScroll } from "./BackgroundScroll";
+import dynamic from "next/dynamic";
 import { Footer } from "./Footer";
-import { ToggleMesh } from "@/r3f/ToggleMesh";
+
+const BackgroundScroll = dynamic(() => import("./BackgroundScroll"), {
+  ssr: false,
+  loading: () => null,
+});
+
+const ToggleMesh = dynamic(
+  () => import("@/r3f/ToggleMesh").then((mod) => mod.ToggleMesh),
+  { ssr: false, loading: () => null }
+);
 
 export function Layout({ children }: any) {
   const [lightMode, setLightMode] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const storedLightMode = JSON.parse(
@@ -23,8 +37,10 @@ export function Layout({ children }: any) {
   }, [lightMode]);
   return (
     <>
-      <BackgroundScroll lightMode={lightMode} />
-      <ToggleMesh lightMode={lightMode} setLightMode={setLightMode} />
+      {mounted && <BackgroundScroll lightMode={lightMode} />}
+      {mounted && (
+        <ToggleMesh lightMode={lightMode} setLightMode={setLightMode} />
+      )}
       {children}
       <Footer />
       <Toaster

@@ -2,7 +2,7 @@ import { HeroScene } from "@/r3f/HeroScene";
 import { Canvas } from "@react-three/fiber";
 import { useRouter } from "next/router";
 
-export function BackgroundScroll({ lightMode }: { lightMode: boolean }) {
+export default function BackgroundScroll({ lightMode }: { lightMode: boolean }) {
   const router = useRouter();
   return (
     <div className="flex flex-col h-[100vh]">

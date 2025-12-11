@@ -56,20 +56,15 @@ export function Items({ items, label, link = false }: any) {
       </h1>
       <div className="w-full glass h-full rounded-lg overflow-hidden border border-[#2d2d2d]">
         {items.map((item: any, i: number, arr: any[]) =>
-          link ? (
-            <Link
-              key={i}
-              href={link ? item.href : ""}
-              target="_blank"
-              rel="no refferer"
-            >
+          link && item.href ? (
+            <Link key={i} href={item.href} target="_blank" rel="noreferrer">
               <Item item={item} link={link} index={i} arrLength={arr.length} />
             </Link>
           ) : (
             <Item
               key={i}
               item={item}
-              link={link}
+              link={false}
               index={i}
               arrLength={arr.length}
             />
