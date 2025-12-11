@@ -3,12 +3,21 @@ import { SKILL_CATEGORIES } from "@/lib/config";
 function SkillCard({
   category,
   index,
+  isLast,
+  totalCount,
 }: {
   category: { name: string; skills: string[] };
   index: number;
+  isLast: boolean;
+  totalCount: number;
 }) {
+  const shouldSpanTwo = isLast && totalCount % 2 === 1;
   return (
-    <div className="p-5 glass rounded-lg card-glow font-mono">
+    <div
+      className={`p-5 glass rounded-lg card-glow font-mono ${
+        shouldSpanTwo ? "md:col-span-2" : ""
+      }`}
+    >
       <h3 className="text-lg font-semibold text-ndgGreen mb-3">
         {category.name}
       </h3>
@@ -35,7 +44,13 @@ export function SkillsSection() {
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {SKILL_CATEGORIES.map((category, index) => (
-          <SkillCard key={category.name} category={category} index={index} />
+          <SkillCard
+            key={category.name}
+            category={category}
+            index={index}
+            isLast={index === SKILL_CATEGORIES.length - 1}
+            totalCount={SKILL_CATEGORIES.length}
+          />
         ))}
       </div>
     </div>
