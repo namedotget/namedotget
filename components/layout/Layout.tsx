@@ -15,11 +15,6 @@ const ToggleMesh = dynamic(
 
 export function Layout({ children }: any) {
   const [lightMode, setLightMode] = useState(true);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const storedLightMode = JSON.parse(
@@ -37,10 +32,8 @@ export function Layout({ children }: any) {
   }, [lightMode]);
   return (
     <>
-      {mounted && <BackgroundScroll lightMode={lightMode} />}
-      {mounted && (
-        <ToggleMesh lightMode={lightMode} setLightMode={setLightMode} />
-      )}
+      <BackgroundScroll lightMode={lightMode} />
+      <ToggleMesh lightMode={lightMode} setLightMode={setLightMode} />
       {children}
       <Footer />
       <Toaster
