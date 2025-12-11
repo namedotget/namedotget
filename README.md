@@ -1,4 +1,4 @@
-## [name].get
+## [[name].get](https://namedotget.com)
 
 **Founder • Full-Stack Builder • Open-source Contributor • AI Orchestrator • Web3 Engineer • Indie App Dev**
 
