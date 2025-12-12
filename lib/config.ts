@@ -78,4 +78,12 @@ export const SKILL_CATEGORIES = [
       "Cypress for e2e & integration testing",
     ],
   },
+  {
+    name: "Hobbies",
+    skills: [
+      "Music production (I made the background track)",
+      "Pixel art and game design",
+      "Hardware tinkering and custom builds",
+    ],
+  },
 ];

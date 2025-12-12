@@ -14,16 +14,12 @@ export default function Home() {
       className={`flex min-h-screen flex-col items-center justify-between p-8 ${inter.className}`}
     >
       <Metadata />
-      {/* <Hero lightMode={lightMode} /> */}
       <div className="w-full max-w-[700px]">
         <Items items={PROJECTS} label="Projects:" link />
         <Items items={CONTRIBUTIONS} label="Contributions:" link />
         <SkillsSection />
         <Contact />
       </div>
-      {/* <div className="mt-4 px-4 py-2 w-full md:w-1/2 glass h-full bg-[#1d1d1d] rounded-md">
-        <p>Contact Me : colin@namedotget.com</p>
-      </div> */}
     </main>
   );
 }

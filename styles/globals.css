@@ -10,12 +10,11 @@
 
 body {
   color: #e8e8e8;
-  background: #26282b;
-  background-attachment: fixed;
+  background: #0a0a0d;
 }
 
 body.light-mode {
-  background: #3a3c40;
+  background: #383a42;
 }
 
 .glass {
@@ -50,4 +49,61 @@ body.light-mode {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #90fcb4;
+}
+
+/* Loading screen animations */
+@keyframes cursorBlink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes gridPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes logoGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 20px rgba(80, 200, 120, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 35px rgba(80, 200, 120, 0.5));
+  }
+}
+
+@keyframes scanlineMove {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(4px);
+  }
+}
+
+.loading-cursor {
+  animation: cursorBlink 1s step-end infinite;
+}
+
+.loading-grid {
+  animation: gridPulse 4s ease-in-out infinite;
+}
+
+.loading-logo-glow {
+  animation: logoGlow 2s ease-in-out infinite;
+}
+
+.loading-scanlines {
+  animation: scanlineMove 0.1s linear infinite;
 }

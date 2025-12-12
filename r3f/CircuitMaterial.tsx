@@ -1,6 +1,6 @@
 //@ts-nocheck
 import { useFrame } from "@react-three/fiber";
-import { useRef, useMemo, useState } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import * as THREE from "three";
 
 function seededRandom(seed: number) {
@@ -8,7 +8,28 @@ function seededRandom(seed: number) {
   return x - Math.floor(x);
 }
 
-// Single animated cell tile
+interface CellAnimationState {
+  targetExtrude: number;
+  currentExtrude: number;
+  nextChangeTime: number;
+  isGlowing: boolean;
+  glowIntensity: number;
+  emissiveIntensity: number;
+}
+
+// 4-stage boot sequence timing (in seconds)
+// Stage 1: Static cube, no emissive (0-0.3s)
+// Stage 2: Emissive starts appearing gradually (0.3-2s)
+// Stage 3: Protrusions begin (0.5-8s, staggered - like GitHub commits)
+// Stage 4: Glowing protrusions activate (3-10s, staggered)
+const EMISSIVE_START_BASE = 0.3;
+const EMISSIVE_START_SPREAD = 1.7;
+const MOVEMENT_START_BASE = 0.5;
+const MOVEMENT_START_SPREAD = 7.5;
+const GLOW_START_BASE = 3.0;
+const GLOW_START_SPREAD = 7.0;
+
+// Single animated cell tile - optimized with refs instead of state
 function CellTile({
   basePosition,
   normal,
@@ -17,6 +38,9 @@ function CellTile({
   lightMode,
   behavior,
   canGlow,
+  lowFreqRef,
+  highFreqRef,
+  audioMode,
 }: {
   basePosition: [number, number, number];
   normal: [number, number, number];
@@ -25,16 +49,34 @@ function CellTile({
   lightMode: boolean;
   behavior: "static" | "rare" | "normal" | "frequent";
   canGlow: boolean;
+  lowFreqRef: React.MutableRefObject<number>;
+  highFreqRef: React.MutableRefObject<number>;
+  audioMode: "low" | "high" | "none";
 }) {
   const meshRef = useRef<THREE.Mesh>();
   const materialRef = useRef<THREE.MeshStandardMaterial>();
-  const [targetExtrude, setTargetExtrude] = useState(0);
-  const [currentExtrude, setCurrentExtrude] = useState(0);
-  const [nextChangeTime, setNextChangeTime] = useState(seededRandom(seed) * 5);
-  const [isGlowing, setIsGlowing] = useState(false);
-  const [glowIntensity, setGlowIntensity] = useState(0);
 
-  // Behavior determines how often and how much cells move
+  // Staggered start times based on seed for gradual 4-stage initialization
+  const initTimes = useMemo(() => {
+    const emissiveStart =
+      EMISSIVE_START_BASE + seededRandom(seed + 888) * EMISSIVE_START_SPREAD;
+    const movementStart =
+      MOVEMENT_START_BASE + seededRandom(seed + 999) * MOVEMENT_START_SPREAD;
+    const glowStart =
+      GLOW_START_BASE + seededRandom(seed + 777) * GLOW_START_SPREAD;
+    return { emissiveStart, movementStart, glowStart };
+  }, [seed]);
+
+  // Use refs instead of state for animation values
+  const animState = useRef<CellAnimationState>({
+    targetExtrude: 0,
+    currentExtrude: 0,
+    nextChangeTime: 99999,
+    isGlowing: false,
+    glowIntensity: 0,
+    emissiveIntensity: 0,
+  });
+
   const behaviorConfig = useMemo(() => {
     switch (behavior) {
       case "static":
@@ -48,85 +90,140 @@ function CellTile({
     }
   }, [behavior]);
 
-  useFrame((state) => {
-    const time = state.clock.elapsedTime;
+  // Track if cell has been initialized
+  const hasInitialized = useRef(false);
 
-    if (time > nextChangeTime && behavior !== "static") {
+  useFrame((state, delta) => {
+    const time = state.clock.elapsedTime;
+    const anim = animState.current;
+
+    // Clamp delta to avoid huge jumps on tab switch
+    const dt = Math.min(delta, 0.1);
+
+    // Stage checks
+    const canShowEmissive = time >= initTimes.emissiveStart;
+    const canMove = time >= initTimes.movementStart;
+    const canGlowNow = canGlow && time >= initTimes.glowStart;
+
+    // Gradually fade in emissive intensity
+    if (canShowEmissive) {
+      const emissiveFadeDuration = 2.0;
+      const timeSinceEmissiveStart = time - initTimes.emissiveStart;
+      const targetEmissive = Math.min(
+        timeSinceEmissiveStart / emissiveFadeDuration,
+        1.0
+      );
+      const emissiveSmoothFactor = 1 - Math.exp(-3 * dt);
+      anim.emissiveIntensity = THREE.MathUtils.lerp(
+        anim.emissiveIntensity,
+        targetEmissive,
+        emissiveSmoothFactor
+      );
+    }
+
+    // Initialize nextChangeTime once movement is allowed
+    if (canMove && !hasInitialized.current) {
+      hasInitialized.current = true;
+      anim.nextChangeTime = time + seededRandom(seed) * 1.0;
+    }
+
+    if (canMove && time > anim.nextChangeTime && behavior !== "static") {
       const shouldExtrude =
         seededRandom(seed + time * 100) < behaviorConfig.moveChance;
-      const extrudeAmount = shouldExtrude
+      anim.targetExtrude = shouldExtrude
         ? 0.02 + seededRandom(seed + time * 50) * behaviorConfig.maxExtrude
         : 0;
-      setTargetExtrude(extrudeAmount);
-      setNextChangeTime(
+      anim.nextChangeTime =
         time +
-          behaviorConfig.minWait +
-          seededRandom(seed + time * 200) *
-            (behaviorConfig.maxWait - behaviorConfig.minWait)
-      );
+        behaviorConfig.minWait +
+        seededRandom(seed + time * 200) *
+          (behaviorConfig.maxWait - behaviorConfig.minWait);
 
-      // Trigger glow when extruding (higher chance)
-      if (canGlow && shouldExtrude && seededRandom(seed + time * 300) > 0.3) {
-        setIsGlowing(true);
+      // Only allow glow after glow delay (stage 4)
+      if (
+        canGlowNow &&
+        shouldExtrude &&
+        seededRandom(seed + time * 300) > 0.3
+      ) {
+        anim.isGlowing = true;
       }
     }
 
-    const newExtrude = THREE.MathUtils.lerp(
-      currentExtrude,
-      targetExtrude,
+    // Original smooth lerp factors for smoother animation
+    anim.currentExtrude = THREE.MathUtils.lerp(
+      anim.currentExtrude,
+      anim.targetExtrude,
       0.06
     );
-    setCurrentExtrude(newExtrude);
 
     // Fade glow based on extrusion - glow fades as cell retracts
-    if (isGlowing) {
-      const targetGlow = currentExtrude > 0.02 ? 1.0 : 0;
-      const newGlow = THREE.MathUtils.lerp(glowIntensity, targetGlow, 0.04);
-      setGlowIntensity(newGlow);
-      if (newGlow < 0.01) {
-        setIsGlowing(false);
-        setGlowIntensity(0);
+    if (anim.isGlowing) {
+      const targetGlow = anim.currentExtrude > 0.02 ? 1.0 : 0;
+      anim.glowIntensity = THREE.MathUtils.lerp(
+        anim.glowIntensity,
+        targetGlow,
+        0.04
+      );
+      if (anim.glowIntensity < 0.01) {
+        anim.isGlowing = false;
+        anim.glowIntensity = 0;
       }
     }
+
+    // Audio displacement
+    const lowFreq = lowFreqRef.current;
+    const highFreq = highFreqRef.current;
+    const audioIntensity =
+      audioMode === "low" ? lowFreq : audioMode === "high" ? highFreq : 0;
+    const audioDisplacement =
+      anim.currentExtrude > 0.02 ? audioIntensity * 0.35 : 0;
+    const totalExtrude = anim.currentExtrude + audioDisplacement;
 
     if (meshRef.current) {
       meshRef.current.position.set(
-        basePosition[0] + normal[0] * newExtrude,
-        basePosition[1] + normal[1] * newExtrude,
-        basePosition[2] + normal[2] * newExtrude
+        basePosition[0] + normal[0] * totalExtrude,
+        basePosition[1] + normal[1] * totalExtrude,
+        basePosition[2] + normal[2] * totalExtrude
       );
     }
 
-    // Animate emissive based on movement and glow state
+    // Animate emissive based on movement, glow state, and audio
+    // Modulated by emissiveIntensity for gradual fade-in during boot sequence
     if (materialRef.current) {
-      const isMoving = Math.abs(currentExtrude - targetExtrude) > 0.005;
-      const extrudeRatio = currentExtrude / 0.2;
+      const isMoving =
+        Math.abs(anim.currentExtrude - anim.targetExtrude) > 0.005;
+      const extrudeRatio = anim.currentExtrude / 0.2;
       const baseIntensity =
         behavior === "static" ? 0.05 : 0.1 + extrudeRatio * 0.4;
       const movingBoost = isMoving ? 0.3 : 0;
+      const audioGlow = anim.currentExtrude > 0.02 ? audioIntensity * 0.5 : 0;
+
+      // Apply boot sequence fade-in (subtle, doesn't override color balance)
+      const bootFade = Math.max(0.7, anim.emissiveIntensity);
 
       if (lightMode) {
-        // Emerald green glow
-        const glowBoost = glowIntensity * 1.2;
+        const glowBoost = anim.glowIntensity * 1.2;
+        const totalIntensity =
+          (baseIntensity + movingBoost + glowBoost + audioGlow) * bootFade;
         materialRef.current.emissive.setRGB(
-          (0.02 + glowBoost * 0.25) * (baseIntensity + movingBoost + glowBoost),
-          (0.12 + glowBoost * 0.75) * (baseIntensity + movingBoost + glowBoost),
-          (0.08 + glowBoost * 0.5) * (baseIntensity + movingBoost + glowBoost)
+          (0.02 + glowBoost * 0.25) * totalIntensity,
+          (0.12 + glowBoost * 0.75) * totalIntensity,
+          (0.08 + glowBoost * 0.5) * totalIntensity
         );
       } else {
-        // Black gunmetal - glow when glowing, otherwise muted
-        const glowBoost = glowIntensity * 1.6;
-        const greenAccent = isGlowing
-          ? 0.6 * glowIntensity
+        const glowBoost = anim.glowIntensity * 1.6;
+        const greenAccent = anim.isGlowing
+          ? 0.6 * anim.glowIntensity
           : isMoving
           ? 0.08
           : extrudeRatio > 0.1
           ? 0.04
           : 0;
+        const baseIntensityWithBoost = (baseIntensity + movingBoost) * bootFade;
         materialRef.current.emissive.setRGB(
-          (0.01 + glowBoost * 0.12) * (baseIntensity + movingBoost),
-          greenAccent * (baseIntensity + movingBoost) + glowBoost * 0.38,
-          (0.01 + glowBoost * 0.18) * (baseIntensity + movingBoost)
+          (0.01 + glowBoost * 0.12) * baseIntensityWithBoost,
+          greenAccent * baseIntensityWithBoost + glowBoost * 0.38 * bootFade,
+          (0.01 + glowBoost * 0.18) * baseIntensityWithBoost
         );
       }
     }
@@ -142,7 +239,6 @@ function CellTile({
     return [0, 0, 0];
   }, [normal]);
 
-  // Gap size based on behavior - static cells have no gap
   const gapMultiplier = behavior === "static" ? 0.98 : 0.88;
 
   return (
@@ -306,9 +402,13 @@ function WireFrame({ lightMode }: { lightMode: boolean }) {
 export function CircuitBox({
   lightMode,
   meshRef,
+  lowFreqRef,
+  highFreqRef,
 }: {
   lightMode: boolean;
   meshRef: any;
+  lowFreqRef: React.MutableRefObject<number>;
+  highFreqRef: React.MutableRefObject<number>;
 }) {
   const cells = useMemo(() => {
     const items: Array<{
@@ -317,6 +417,7 @@ export function CircuitBox({
       seed: number;
       behavior: "static" | "rare" | "normal" | "frequent";
       canGlow: boolean;
+      audioMode: "low" | "high" | "none";
     }> = [];
 
     const gridSize = 5;
@@ -357,24 +458,27 @@ export function CircuitBox({
           if (face.normal[1] !== 0) pos[1] = face.offset;
           if (face.normal[2] !== 0) pos[2] = face.offset;
 
-          // Assign behavior based on position/seed
           const seed = faceIdx * 1000 + i * 100 + j;
           const rand = seededRandom(seed);
           let behavior: "static" | "rare" | "normal" | "frequent";
 
           if (rand < 0.25) {
-            behavior = "static"; // 25% never move
+            behavior = "static";
           } else if (rand < 0.5) {
-            behavior = "rare"; // 25% rarely move
+            behavior = "rare";
           } else if (rand < 0.8) {
-            behavior = "normal"; // 30% normal movement
+            behavior = "normal";
           } else {
-            behavior = "frequent"; // 20% move often
+            behavior = "frequent";
           }
 
-          // ~40% of non-static cells can glow
           const canGlow =
             behavior !== "static" && seededRandom(seed + 500) > 0.6;
+
+          // Audio mode assignment
+          const audioRand = seededRandom(seed + 777);
+          const audioMode: "low" | "high" | "none" =
+            audioRand < 0.25 ? "low" : audioRand < 0.5 ? "high" : "none";
 
           items.push({
             position: pos,
@@ -382,6 +486,7 @@ export function CircuitBox({
             seed,
             behavior,
             canGlow,
+            audioMode,
           });
         }
       }
@@ -394,13 +499,8 @@ export function CircuitBox({
 
   return (
     <group ref={meshRef}>
-      {/* Inner glow core visible through gaps */}
       <InnerGlow lightMode={lightMode} />
-
-      {/* Wire frame overlay */}
       <WireFrame lightMode={lightMode} />
-
-      {/* Animated cell tiles */}
       {cells.map((cell, idx) => (
         <CellTile
           key={idx}
@@ -411,6 +511,9 @@ export function CircuitBox({
           lightMode={lightMode}
           behavior={cell.behavior}
           canGlow={cell.canGlow}
+          lowFreqRef={lowFreqRef}
+          highFreqRef={highFreqRef}
+          audioMode={cell.audioMode}
         />
       ))}
     </group>
