@@ -77,7 +77,7 @@ export function LoadingScreen({ isLoaded }: LoadingScreenProps) {
           >
             name
           </span>
-          <span className="text-[#e8e8e8]">.get</span>
+          <span className="text-[#e8e8e8]">.get™</span>
         </div>
 
         {/* Terminal cursor loading indicator */}

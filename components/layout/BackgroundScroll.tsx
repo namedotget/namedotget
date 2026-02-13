@@ -48,7 +48,7 @@ export default function BackgroundScroll({
             className="text-[180%] md:text-[300%] font-bold text-center mt-6 md:mt-8 font-sans"
             onClick={() => router.push("/")}
           >
-            <span className="px-1.5 md:px-2 bg-[#50C878]">name</span>.get
+            <span className="px-1.5 md:px-2 bg-[#50C878]">name</span>.get™
           </button>
           <p className="text-xs md:text-sm opacity-80 mt-2 md:mt-3 tracking-wide text-center">
             Full-Stack Engineer / AI Systems / Web3 / Founder

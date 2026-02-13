@@ -64,7 +64,7 @@ export default function PrivacyPolicy() {
             <p>
               <strong>Company</strong> (referred to as either &quot;the
               Company&quot;, &quot;We&quot;, &quot;Us&quot; or &quot;Our&quot;
-              in this Agreement) refers to name.get.
+              in this Agreement) refers to name.get™.
             </p>
           </li>
           <li>
@@ -117,7 +117,7 @@ export default function PrivacyPolicy() {
           </li>
           <li>
             <p>
-              <strong>Website</strong> refers to name.get, accessible from{" "}
+              <strong>Website</strong> refers to name.get™, accessible from{" "}
               <a
                 href="https://namedotget.com"
                 rel="external nofollow noopener"
