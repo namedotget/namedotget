@@ -1,16 +1,23 @@
 export const PROJECTS = [
   {
+    name: "Devlink",
+    description:
+      "Devlink is a dev task dashboard for your team. Manage tasks and send messages in a group chat. All from your terminal.",
+    href: "https://devlink.fly.dev",
+  },
+  {
     name: "v0-lite",
-    description: "A portable local AI cluster",
+    description: "A portable, local, AI cluster.",
   },
   {
     name: "Jumpr",
-    description: "First person platform game",
+    description:
+      "First person platform game. Try on your mobile device to utilize the gyro controls!",
     href: "https://jumpr.netlify.app/",
   },
   {
-    name: "Soundcloud DJ",
-    description: "Soundcloud Embed & Visualizer for Soundcloud DJs",
+    name: "Hanz Wulf",
+    description: "Website for a DJ and producer based in St.Thomas, USVI",
     href: "https://hanzwulf.com",
   },
 ];

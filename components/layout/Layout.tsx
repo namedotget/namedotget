@@ -10,12 +10,12 @@ const BackgroundScroll = dynamic(
   {
     ssr: false,
     loading: () => null,
-  }
+  },
 );
 
 const ToggleMesh = dynamic(
   () => import("@/r3f/ToggleMesh").then((mod) => mod.ToggleMesh),
-  { ssr: false, loading: () => null }
+  { ssr: false, loading: () => null },
 );
 
 export function Layout({ children }: any) {
@@ -26,7 +26,7 @@ export function Layout({ children }: any) {
 
   useEffect(() => {
     const storedLightMode = JSON.parse(
-      localStorage.getItem("lightMode") as string
+      localStorage.getItem("lightMode") as string,
     );
     if (storedLightMode != null) setLightMode(storedLightMode);
   }, []);

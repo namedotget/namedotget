@@ -62,7 +62,7 @@ export default function BackgroundScroll({
       </div>
       <button
         onClick={onStartMusic}
-        className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-20 font-mono text-sm px-4 py-2 rounded-lg transition-all duration-1000 cursor-pointer hover:scale-105 ${
+        className={`fixed bottom-8 md:bottom-4 left-1/2 -translate-x-1/2 z-20 font-mono text-sm px-4 py-2 rounded-lg transition-all duration-1000 cursor-pointer hover:scale-105 ${
           isPlaying
             ? "opacity-0 pointer-events-none translate-y-4"
             : "opacity-100"
