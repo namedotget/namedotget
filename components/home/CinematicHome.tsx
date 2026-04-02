@@ -299,7 +299,7 @@ export function CinematicHome({
             }}
             aria-hidden
           />
-          <div className="home-hero-animate home-hero-card-glass relative flex flex-col gap-3 rounded-2xl px-6 py-8 md:gap-4 md:rounded-3xl md:px-10 md:py-10">
+          <div className="home-hero-animate home-hero-card-glass relative flex flex-col gap-3 rounded-none px-0 py-0 md:gap-4 md:rounded-3xl md:px-10 md:py-10">
             <div className="home-hero-inner-panel px-3 py-3 md:px-4 md:py-3.5">
               <div className="flex items-center gap-0 home-section-heading">
                 <span className="home-section-heading__label">
