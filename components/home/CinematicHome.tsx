@@ -408,8 +408,6 @@ export function CinematicHome({
         active={sectionIndex === 3}
         sectionRef={bindSectionScrollRef(3)}
       >
-        <Contact />
-        <Footer />
         <div className="home-hero-inner-panel mt-10 px-5 py-6 text-center md:mt-14 md:px-7 md:py-7">
           <p className="home-text-xf text-sm leading-relaxed text-home-body md:text-[0.95rem]">
             Thanks for your time. Have a great day!
@@ -424,6 +422,8 @@ export function CinematicHome({
             <span>Back to intro</span>
           </button>
         </div>
+        <Contact />
+        <Footer />
       </SectionChrome>
 
       <PixelWaveTransition
