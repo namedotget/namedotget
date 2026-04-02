@@ -6,6 +6,8 @@ import { WireWall } from "./WireWallMaterial";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 
+import { heroMotionBridge } from "@/lib/heroMotionBridge";
+
 export function HeroScene({
   lightMode,
   audioData,
@@ -21,6 +23,7 @@ export function HeroScene({
   const [isMobile, setIsMobile] = useState(false);
   const smoothedLowFreq = useRef(0);
   const smoothedHighFreq = useRef(0);
+  const motionScaleSmoothed = useRef(1);
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
@@ -50,13 +53,21 @@ export function HeroScene({
       // Clamp delta to avoid jumps on tab switch
       const dt = Math.min(delta, 0.1);
 
+      const kScale = 10;
+      motionScaleSmoothed.current = THREE.MathUtils.lerp(
+        motionScaleSmoothed.current,
+        heroMotionBridge.targetMotionScale,
+        1 - Math.exp(-kScale * dt),
+      );
+      const m = motionScaleSmoothed.current;
+
       const baseSpeed = 0.005 + (0.01 * window.scrollY) / 500;
-      const speed = audioActive ? baseSpeed * 0.32 : baseSpeed;
+      const speed = (audioActive ? baseSpeed * 0.32 : baseSpeed) * m;
 
       meshRef.current.rotation.x += speed;
       meshRef.current.rotation.y += speed;
-      meshRef.current.position.y = -window.scrollY / 500;
-      camera.position.z = 5 + window.scrollY / 900;
+      meshRef.current.position.y = (-window.scrollY / 500) * m;
+      camera.position.z = 5 + (window.scrollY / 900) * m;
 
       // Slower follow when audio is on (less churn, cheaper visuals)
       const lowK = audioActive ? 5 : 12;

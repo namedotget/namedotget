@@ -19,12 +19,6 @@ import { SectionHeading } from "@/components/SectionHeading";
 
 const PROMPT = "namedotget ~";
 
-function elementIntersectsViewport(el: HTMLElement): boolean {
-  const rect = el.getBoundingClientRect();
-  const vh = window.innerHeight || document.documentElement.clientHeight;
-  return rect.top < vh && rect.bottom > 0;
-}
-
 function outputClass(style: "output" | "faint"): string {
   if (style === "faint") {
     return "text-home-term-out-faint home-text-xf";
@@ -196,9 +190,11 @@ function runAnimatedSequence(
 
 type BlogTerminalProps = {
   posts: BlogPostJson[];
+  /** Drives visibility for the home pager (fixed sections break intersection observers). */
+  active: boolean;
 };
 
-export default function BlogTerminal({ posts }: BlogTerminalProps) {
+export default function BlogTerminal({ posts, active }: BlogTerminalProps) {
   const steps = useMemo(() => buildStepsFromPosts(posts), [posts]);
   const reducedMotion = useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -212,28 +208,9 @@ export default function BlogTerminal({ posts }: BlogTerminalProps) {
   const timeoutIdsRef = useRef<number[]>([]);
   const cancelledRef = useRef(false);
 
-  useLayoutEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    if (elementIntersectsViewport(el)) setInView(true);
-  }, []);
-
   useEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        setInView(true);
-        observer.disconnect();
-      },
-      { root: null, rootMargin: "0px", threshold: 0 },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+    setInView(active);
+  }, [active]);
 
   useEffect(() => {
     if (!inView) return;

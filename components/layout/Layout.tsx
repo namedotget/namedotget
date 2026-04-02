@@ -1,6 +1,7 @@
 import { Toaster } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 import { Footer } from "./Footer";
 import { useAudioAnalyzer } from "@/lib/useAudioAnalyzer";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -19,6 +20,7 @@ const ToggleMesh = dynamic(
 );
 
 export function Layout({ children }: any) {
+  const router = useRouter();
   const [lightMode, setLightMode] = useState(true);
   const [isCanvasReady, setIsCanvasReady] = useState(false);
   const { audioData, isPlaying, isMuted, startAudio, toggleMute } =
@@ -101,7 +103,7 @@ export function Layout({ children }: any) {
         )}
       </button>
       {children}
-      <Footer />
+      {router.pathname !== "/" && <Footer />}
       <Toaster
         position="bottom-center"
         toastOptions={{
