@@ -213,17 +213,14 @@ export function CinematicHome({
     ? PIXEL_WAVE_DURATION_REDUCED_MS
     : PIXEL_WAVE_DURATION_MS;
 
-  const startTransition = useCallback(
-    (delta: 1 | -1) => {
-      if (animatingRef.current) return;
-      animatingRef.current = true;
-      pendingDeltaRef.current = delta;
-      setWaveDir(delta);
-      setRunId((r) => r + 1);
-      setWaveActive(true);
-    },
-    [],
-  );
+  const startTransition = useCallback((delta: 1 | -1) => {
+    if (animatingRef.current) return;
+    animatingRef.current = true;
+    pendingDeltaRef.current = delta;
+    setWaveDir(delta);
+    setRunId((r) => r + 1);
+    setWaveActive(true);
+  }, []);
 
   const onWaveMid = useCallback(() => {
     const len = SECTION_LABELS.length;
@@ -415,11 +412,7 @@ export function CinematicHome({
         <Footer />
         <div className="home-hero-inner-panel mt-10 px-5 py-6 text-center md:mt-14 md:px-7 md:py-7">
           <p className="home-text-xf text-sm leading-relaxed text-home-body md:text-[0.95rem]">
-            That is the full loop. Thanks for stopping by.
-          </p>
-          <p className="home-text-xf mt-3 text-xs leading-relaxed text-home-muted md:mt-4 md:text-[0.8rem]">
-            Toggle up top shifts the palette; arrows or the dots move between
-            sections.
+            Thanks for your time. Have a great day!
           </p>
           <button
             type="button"
