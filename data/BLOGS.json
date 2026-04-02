@@ -7,6 +7,6 @@
   {
     "command": "blog --post=local-ai",
     "title": "Building a local, portable AI cluster",
-    "summary": "One of my favoirte recent project was building a local AI cluster. I was able to orchestrate models across 3 separate machines in real-time!  It took about 2 days to tie the system together but the result is something I'm very proud of.  One of the machines emits a wifi signal so the system can be used w/out internet connection and run on battery power."
+    "summary": "One of my favorite recent projects was building a local AI cluster. I was able to orchestrate models across 3 separate machines in real-time!  It took about 2 days to tie the system together but the result is something I'm very proud of.  One of the machines emits a wifi signal so the system can be used w/out internet connection and run on battery power."
   }
 ]
