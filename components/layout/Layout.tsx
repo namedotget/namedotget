@@ -45,6 +45,7 @@ export function Layout({ children }: any) {
       <BackgroundScroll
         lightMode={lightMode}
         audioData={audioData}
+        audioActive={isPlaying && !isMuted}
         isPlaying={isPlaying}
         onReady={() => setIsCanvasReady(true)}
         onStartMusic={startAudio}

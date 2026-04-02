@@ -6,12 +6,14 @@ import { useEffect, useRef } from "react";
 export default function BackgroundScroll({
   lightMode,
   audioData,
+  audioActive,
   isPlaying,
   onReady,
   onStartMusic,
 }: {
   lightMode: boolean;
   audioData: Uint8Array;
+  audioActive: boolean;
   isPlaying: boolean;
   onReady?: () => void;
   onStartMusic: () => void;
@@ -35,11 +37,15 @@ export default function BackgroundScroll({
       <div
         className="fixed top-0 left-0 z-[-2] w-screen h-screen"
         style={{
-          backgroundColor: lightMode ? "#383a42" : "#0a0a0d",
+          backgroundColor: "#0a0a0d",
         }}
       >
         <Canvas flat shadows>
-          <HeroScene lightMode={lightMode} audioData={audioData} />
+          <HeroScene
+            lightMode={lightMode}
+            audioData={audioData}
+            audioActive={audioActive}
+          />
         </Canvas>
       </div>
       <div className="flex flex-col h-[100vh]">

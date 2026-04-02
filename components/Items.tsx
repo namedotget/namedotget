@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { SectionHeading } from "@/components/SectionHeading";
+
 function Item({ item, link, index, arrLength }: any) {
   const [hover, setHover] = useState(false);
   const [isFirst, setIsFirst] = useState(false);
@@ -13,9 +15,9 @@ function Item({ item, link, index, arrLength }: any) {
 
   return (
     <div
-      className={`min-h-[80px] flex items-start justify-between p-5 border-b border-[#2d2d2d] bg-[#1d1d1d] ${
-        isFirst ? "rounded-t-lg" : isLast ? "rounded-b-lg border-b-0" : ""
-      } ease-in-out duration-300 hover:bg-[#252525] ${
+      className={`home-glass-recess-row home-text-xf min-h-[80px] flex items-start justify-between p-5 ease-in-out duration-300 ${
+        isFirst ? "rounded-t-lg" : ""
+      } ${isLast ? "rounded-b-lg home-glass-recess-row-end" : ""} ${
         link ? "hover:border-l-2 hover:border-l-ndgGreen hover:pl-[18px]" : ""
       }`}
       onMouseOver={() => setHover(true)}
@@ -24,14 +26,14 @@ function Item({ item, link, index, arrLength }: any) {
       <div className="flex items-center">
         <div>
           <h2
-            className={`text-lg font-semibold text-ndgGreen ease-in-out duration-300 ${
+            className={`text-home-accent home-text-xf text-lg font-semibold ease-in-out duration-300 ${
               link && hover && "translate-x-1"
             }`}
           >
             {item.name}
             {link && (
               <span
-                className={`ml-2 text-sm opacity-0 transition-opacity duration-300 ${
+                className={`text-home-accent home-text-xf ml-2 text-sm opacity-0 transition-opacity duration-300 ${
                   hover && "opacity-60"
                 }`}
               >
@@ -39,7 +41,7 @@ function Item({ item, link, index, arrLength }: any) {
               </span>
             )}
           </h2>
-          <p className="text-sm text-[#a0a0a0] w-full mt-1 leading-relaxed">
+          <p className="text-home-body home-text-xf mt-1 w-full text-sm leading-relaxed">
             {item.description}
           </p>
         </div>
@@ -51,10 +53,8 @@ function Item({ item, link, index, arrLength }: any) {
 export function Items({ items, label, link = false }: any) {
   return (
     <div className="mt-6 flex flex-col gap-3 justify-center w-full font-mono">
-      <h1 className="font-bold text-2xl text-center text-[#00000080]">
-        {label}
-      </h1>
-      <div className="w-full glass h-full rounded-lg overflow-hidden border border-[#2d2d2d]">
+      <SectionHeading as="h2">{label}</SectionHeading>
+      <div className="home-term-glass h-full w-full overflow-hidden rounded-lg">
         {items.map((item: any, i: number, arr: any[]) =>
           link && item.href ? (
             <Link key={i} href={item.href} target="_blank" rel="noreferrer">

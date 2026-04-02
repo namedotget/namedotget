@@ -1,3 +1,4 @@
+import { SectionHeading } from "@/components/SectionHeading";
 import { SKILL_CATEGORIES } from "@/lib/config";
 
 function SkillCard({
@@ -14,21 +15,23 @@ function SkillCard({
   const shouldSpanTwo = isLast && totalCount % 2 === 1;
   return (
     <div
-      className={`p-5 glass rounded-lg card-glow font-mono ${
+      className={`home-term-glass card-glow rounded-lg p-5 font-mono ${
         shouldSpanTwo ? "md:col-span-2" : ""
       }`}
     >
-      <h3 className="text-lg font-semibold text-ndgGreen mb-3">
+      <h3 className="text-home-accent home-text-xf mb-3 text-lg font-semibold">
         {category.name}
       </h3>
       <ul className="space-y-2">
         {category.skills.map((skill, i) => (
           <li
             key={i}
-            className="text-sm text-[#a0a0a0] flex items-center gap-2"
+            className="flex items-center gap-2 text-sm"
           >
-            <span className="text-ndgGreen/60 leading-none">{">"}</span>
-            <span>{skill}</span>
+            <span className="text-home-chevron home-text-xf leading-none">
+              {">"}
+            </span>
+            <span className="text-home-body home-text-xf">{skill}</span>
           </li>
         ))}
       </ul>
@@ -39,9 +42,7 @@ function SkillCard({
 export function SkillsSection() {
   return (
     <div className="mt-6 flex flex-col gap-3 justify-center w-full font-mono">
-      <h1 className="font-bold text-2xl text-center text-[#00000080]">
-        Skills:
-      </h1>
+      <SectionHeading as="h2">Skills</SectionHeading>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {SKILL_CATEGORIES.map((category, index) => (
           <SkillCard

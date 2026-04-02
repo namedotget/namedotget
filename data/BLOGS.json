@@ -1,0 +1,12 @@
+[
+  {
+    "command": "blog --post=intro",
+    "title": "Hello",
+    "summary": "This is my personal blog. I'll be using it to share my thoughts on technology, programming, and other topics."
+  },
+  {
+    "command": "blog --post=local-ai",
+    "title": "Building a local, portable AI cluster",
+    "summary": "One of my favoirte recent project was building a local AI cluster. I was able to orchestrate models across 3 separate machines in real-time!  It took about 2 days to tie the system together but the result is something I'm very proud of.  One of the machines emits a wifi signal so the system can be used w/out internet connection and run on battery power."
+  }
+]

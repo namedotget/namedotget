@@ -1,14 +1,14 @@
 import Link from "next/link";
 
+import { SectionHeading } from "@/components/SectionHeading";
+
 export function Contact() {
   return (
     <div className="mt-6 flex flex-col gap-3 justify-center w-full font-mono">
-      <h1 className="font-bold text-2xl text-center text-[#00000080]">
-        Contact:
-      </h1>
-      <div className="p-5 glass rounded-lg card-glow">
-        <div className="flex flex-col gap-4 items-center">
-          <p className="text-center text-[#d0d0d0]">
+      <SectionHeading as="h2">Contact</SectionHeading>
+      <div className="home-term-glass card-glow rounded-lg p-5">
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-home-body-alt home-text-xf text-center">
             For inquiries, email me directly.
           </p>
           <a
@@ -23,7 +23,7 @@ export function Contact() {
             </span>
           </a>
           <Link
-            className="text-center text-sm text-[#606060] hover:text-ndgGreen transition-colors duration-300"
+            className="text-home-muted home-text-xf text-home-muted-link text-center text-sm"
             href="/privacy"
           >
             Privacy Policy
