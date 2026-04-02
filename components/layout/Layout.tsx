@@ -19,6 +19,37 @@ const ToggleMesh = dynamic(
   { ssr: false, loading: () => null },
 );
 
+function MusicStartStrip({
+  isPlaying,
+  onStartMusic,
+}: {
+  isPlaying: boolean;
+  onStartMusic: () => void;
+}) {
+  return (
+    <div
+      className={[
+        "pointer-events-auto w-full border-t border-[rgba(80,200,120,0.22)] bg-[rgba(6,8,10,0.82)] backdrop-blur-md transition-opacity duration-1000",
+        isPlaying ? "pointer-events-none opacity-0" : "opacity-100",
+      ].join(" ")}
+      role="region"
+      aria-label="Background audio"
+    >
+      <div className="mx-auto flex max-w-3xl justify-center px-4 py-2.5 md:py-3">
+        <button
+          type="button"
+          onClick={onStartMusic}
+          className="font-mono text-sm text-[#c0c0c0] transition-transform duration-300 hover:scale-[1.02] hover:text-[#e2e2e2]"
+        >
+          <span className="text-ndgGreen">{">"}</span>
+          <span className="ml-2">click 4 </span>
+          <span className="ml-1 animate-pulse text-ndgGreen">music</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Layout({ children }: any) {
   const router = useRouter();
   const [lightMode, setLightMode] = useState(true);
@@ -48,9 +79,7 @@ export function Layout({ children }: any) {
         lightMode={lightMode}
         audioData={audioData}
         audioActive={isPlaying && !isMuted}
-        isPlaying={isPlaying}
         onReady={() => setIsCanvasReady(true)}
-        onStartMusic={startAudio}
       />
       <ToggleMesh lightMode={lightMode} setLightMode={setLightMode} />
       <button
@@ -102,8 +131,23 @@ export function Layout({ children }: any) {
           </svg>
         )}
       </button>
-      {children}
-      {router.pathname !== "/" && <Footer />}
+      <div
+        className={[
+          "relative z-10 flex min-h-[100dvh] flex-col",
+          !isPlaying ? "pb-[calc(3rem+env(safe-area-inset-bottom,0px))]" : "",
+        ].join(" ")}
+      >
+        <div className="flex min-h-0 flex-1 flex-col">
+          {children}
+          {router.pathname !== "/" && <Footer />}
+        </div>
+      </div>
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[92000]"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
+        <MusicStartStrip isPlaying={isPlaying} onStartMusic={startAudio} />
+      </div>
       <Toaster
         position="bottom-center"
         toastOptions={{

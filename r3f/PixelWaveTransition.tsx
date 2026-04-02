@@ -1,9 +1,14 @@
 //@ts-nocheck
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo, useLayoutEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import * as THREE from "three";
 
-import { PIXEL_WAVE_GRID_CELLS, PIXEL_WAVE_BAND } from "@/lib/pixelWaveConfig";
+import {
+  PIXEL_WAVE_GRID_CELLS,
+  PIXEL_WAVE_BAND,
+  PIXEL_WAVE_HALO,
+} from "@/lib/pixelWaveConfig";
 
 const vertexShader = /* glsl */ `
   varying vec2 vUv;
@@ -19,8 +24,13 @@ const fragmentShader = /* glsl */ `
   uniform float uTime;
   uniform float uGrid;
   uniform float uBand;
+  uniform float uHalo;
   uniform vec3 uAccent;
   varying vec2 vUv;
+
+  float hash21(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+  }
 
   void main() {
     float x = vUv.x;
@@ -29,47 +39,71 @@ const fragmentShader = /* glsl */ `
 
     float cellY = floor(y * uGrid);
     float cellX = floor(x * uGrid);
+    vec2 cellId = vec2(cellX, cellY);
+
     float ripple =
-      sin(cellY * 0.31 + uTime * 5.0) * 0.038
-      + sin(cellX * 0.12 + cellY * 0.21 + uTime * 2.6) * 0.018;
+      sin(cellY * 0.31 + uTime * 5.2) * 0.052
+      + sin(cellX * 0.12 + cellY * 0.21 + uTime * 2.75) * 0.028
+      + sin((cellX + cellY) * 0.17 + uTime * 3.4) * 0.038
+      + sin(cellX * 0.43 - uTime * 4.05) * sin(cellY * 0.36 + uTime * 2.15) * 0.024
+      + sin(length(vec2(cellX, cellY)) * 0.11 + uTime * 2.9) * 0.018;
 
     float p = clamp(uProgress, 0.0, 1.0);
-    float edge;
-    float cover;
-
-    if (p < 0.5) {
-      float t = p * 2.0;
-      edge = 1.0 - t + ripple;
-      cover = step(edge, xw);
-    } else {
-      float t = (p - 0.5) * 2.0;
-      edge = t + ripple;
-      cover = step(edge, xw);
-    }
+    // Single sweep across full progress (no return sweep in the second half).
+    float edge = (1.0 - p) + ripple;
+    float cover = step(edge, xw);
 
     float dist = abs(xw - edge);
-    float inBand = 1.0 - smoothstep(0.0, uBand + 0.012, dist);
+    float inBand = 1.0 - smoothstep(0.0, uBand + 0.018, dist);
+    float haloBand = 1.0 - smoothstep(uBand, uBand + uHalo + 0.07, dist);
+    float pulse = 0.65 + 0.35 * sin(uTime * 9.0 + dist * 120.0);
 
     float fx = fract(x * uGrid);
     float fy = fract(y * uGrid);
     float voxelShade =
-      mix(0.5, 1.0, fx) * mix(0.62, 1.0, 1.0 - abs(fy - 0.5) * 2.0);
+      mix(0.42, 1.0, fx) * mix(0.55, 1.0, 1.0 - abs(fy - 0.5) * 2.0);
+    float cellHash = 0.82 + 0.36 * hash21(cellId + vec2(uTime * 0.02));
 
-    vec3 baseDark = vec3(0.039, 0.039, 0.051);
-    float gridHi = max(step(0.94, fx), step(0.94, fy)) * 0.35;
+    vec3 baseDark = vec3(0.022, 0.024, 0.038);
+    float gridHi = max(step(0.92, fx), step(0.92, fy)) * 0.42;
 
-    vec3 glowCore = uAccent * voxelShade * (3.5 + inBand * 5.0);
-    vec3 rim = uAccent * inBand * 1.4;
-    vec3 rgb = baseDark * cover + glowCore * inBand * max(cover, 0.15);
-    rgb += rim * inBand * (1.0 - cover) * 0.45;
-    rgb += uAccent * pow(inBand, 2.0) * 0.85;
-    rgb = min(rgb, vec3(3.0));
-    rgb *= (1.0 - gridHi * 0.15);
+    vec3 accentSoft = mix(uAccent, vec3(1.0), 0.08);
+    vec3 glowCore = accentSoft * voxelShade * cellHash * (4.2 + inBand * 8.5) * pulse;
+    vec3 rim = accentSoft * inBand * (1.55 + haloBand * 0.7);
+    vec3 rgb = baseDark * cover + glowCore * inBand * max(cover, 0.12);
+    rgb += rim * inBand * (1.0 - cover) * 0.58;
+    rgb += accentSoft * pow(inBand, 1.35) * 1.35;
+    rgb += accentSoft * pow(max(inBand, 0.00001), 0.45) * haloBand * 1.1;
+    rgb += accentSoft * vec3(0.45, 0.72, 1.0) * pow(haloBand, 2.5) * 0.35;
+    rgb = min(rgb, vec3(4.2));
+    rgb *= (1.0 - gridHi * 0.12);
 
-    float alpha = clamp(max(cover * 0.995, inBand * 0.95), 0.0, 1.0);
-    gl_FragColor = vec4(rgb, alpha);
+    float aWave = clamp(max(cover * 0.998, max(inBand * 0.98, haloBand * 0.55)), 0.0, 0.7);
+
+    vec2 q = vUv * 2.0 - 1.0;
+    float radial = length(q);
+    float outer = pow(smoothstep(0.08, 1.0, radial), 0.85);
+    float env = smoothstep(0.0, 0.1, p) * smoothstep(1.0, 0.9, p);
+    float veilA = clamp(outer * env * 0.72, 0.0, 0.0);
+    vec3 veilRgb = vec3(0.0);
+
+    float outA = veilA + aWave * (1.0 - veilA);
+    vec3 outRgb = (veilRgb * veilA + rgb * aWave * (1.0 - veilA)) / max(outA, 0.00001);
+
+    float tailFade = 1.0 - smoothstep(0.34, 0.97, p);
+    outA *= tailFade;
+
+    gl_FragColor = vec4(outRgb, outA);
   }
 `;
+
+function SyncGlSize({ width, height }: { width: number; height: number }) {
+  const setSize = useThree((s) => s.setSize);
+  useLayoutEffect(() => {
+    setSize(width, height, false);
+  }, [width, height, setSize]);
+  return null;
+}
 
 function WaveScene({
   runId,
@@ -100,6 +134,7 @@ function WaveScene({
       uTime: { value: 0 },
       uGrid: { value: PIXEL_WAVE_GRID_CELLS },
       uBand: { value: PIXEL_WAVE_BAND },
+      uHalo: { value: PIXEL_WAVE_HALO },
       uAccent: { value: new THREE.Color("#50c878") },
     }),
     [],
@@ -154,7 +189,7 @@ function WaveScene({
         position={[0, 0, 10]}
       />
       <mesh position={[0, 0, 0]} frustumCulled={false} renderOrder={1000}>
-        <planeGeometry args={[2, 2]} />
+        <planeGeometry args={[1, 1]} />
         <shaderMaterial
           ref={matRef}
           attach="material"
@@ -174,6 +209,30 @@ function WaveScene({
   );
 }
 
+function readViewportCssSize() {
+  if (typeof window === "undefined") return { w: 1, h: 1 };
+  const vv = window.visualViewport;
+  return {
+    w: Math.max(1, Math.round(vv?.width ?? window.innerWidth)),
+    h: Math.max(1, Math.round(vv?.height ?? window.innerHeight)),
+  };
+}
+
+function useViewportCssSize() {
+  const [size, setSize] = useState(readViewportCssSize);
+  useLayoutEffect(() => {
+    const apply = () => setSize(readViewportCssSize());
+    apply();
+    window.addEventListener("resize", apply);
+    window.visualViewport?.addEventListener("resize", apply);
+    return () => {
+      window.removeEventListener("resize", apply);
+      window.visualViewport?.removeEventListener("resize", apply);
+    };
+  }, []);
+  return size;
+}
+
 export function PixelWaveTransition({
   runId,
   active,
@@ -191,13 +250,30 @@ export function PixelWaveTransition({
   onMid: () => void;
   onEnd: () => void;
 }) {
-  if (!active) return null;
+  const vp = useViewportCssSize();
 
-  return (
+  if (!active) return null;
+  if (typeof document === "undefined") return null;
+
+  const wPx = vp.w;
+  const hPx = vp.h;
+
+  /** Body portal avoids Layout's z-10 stacking context. Explicit px size so R3F useMeasure never sees 0×0 or vw/vh rounding bugs. */
+  return createPortal(
     <div
-      className="pointer-events-none fixed inset-0 z-[90000]"
       aria-hidden
-      style={{ isolation: "isolate" }}
+      className="pointer-events-none"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: wPx,
+        height: hPx,
+        margin: 0,
+        padding: 0,
+        zIndex: 100010,
+        overflow: "hidden",
+      }}
     >
       <Canvas
         gl={{
@@ -206,14 +282,23 @@ export function PixelWaveTransition({
           powerPreference: "high-performance",
           stencil: false,
         }}
-        onCreated={({ gl }) => {
+        resize={{ debounce: 0, scroll: false }}
+        onCreated={({ gl, setSize }) => {
           gl.setClearColor(0x000000, 0);
           gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          setSize(wPx, hPx, false);
         }}
-        style={{ width: "100%", height: "100%", display: "block" }}
+        style={{
+          display: "block",
+          width: wPx,
+          height: hPx,
+          touchAction: "none",
+        }}
         dpr={[1, 2]}
         frameloop="always"
+        camera={{ position: [0, 0, 0.2] }}
       >
+        <SyncGlSize width={wPx} height={hPx} />
         <WaveScene
           runId={runId}
           durationMs={durationMs}
@@ -223,6 +308,7 @@ export function PixelWaveTransition({
           onEnd={onEnd}
         />
       </Canvas>
-    </div>
+    </div>,
+    document.body,
   );
 }

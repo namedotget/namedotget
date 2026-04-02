@@ -135,7 +135,8 @@ function SectionChrome({
     >
       <div
         className={[
-          "mx-auto flex min-h-full w-full max-w-[700px] flex-col px-6 py-10 md:px-8 md:py-12",
+          "mx-auto flex min-h-full w-full max-w-[700px] flex-col px-6 pt-10 md:px-8 md:pt-12",
+          "pb-[calc(2.5rem+3rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(3rem+3rem+env(safe-area-inset-bottom,0px))]",
           contentClassName ?? "",
         ].join(" ")}
       >
@@ -215,23 +216,18 @@ export function CinematicHome({
   const startTransition = useCallback(
     (delta: 1 | -1) => {
       if (animatingRef.current) return;
-      const next = sectionIndex + delta;
-      if (next < 0 || next > 3) return;
-      if (prefersReducedMotion) {
-        setSectionIndex(next);
-        return;
-      }
       animatingRef.current = true;
       pendingDeltaRef.current = delta;
       setWaveDir(delta);
       setRunId((r) => r + 1);
       setWaveActive(true);
     },
-    [sectionIndex, prefersReducedMotion],
+    [],
   );
 
   const onWaveMid = useCallback(() => {
-    setSectionIndex((s) => s + pendingDeltaRef.current);
+    const len = SECTION_LABELS.length;
+    setSectionIndex((s) => (s + pendingDeltaRef.current + len) % len);
   }, []);
 
   const onWaveEnd = useCallback(() => {
@@ -242,9 +238,18 @@ export function CinematicHome({
   const selectSection = useCallback(
     (i: number) => {
       if (waveActive || i === sectionIndex) return;
+      const delta = i - sectionIndex;
+      if (delta === 1) {
+        startTransition(1);
+        return;
+      }
+      if (delta === -1) {
+        startTransition(-1);
+        return;
+      }
       setSectionIndex(i);
     },
-    [waveActive, sectionIndex],
+    [waveActive, sectionIndex, startTransition],
   );
 
   useEffect(() => {
@@ -285,7 +290,7 @@ export function CinematicHome({
       <SectionChrome
         index={0}
         active={sectionIndex === 0}
-        contentClassName="justify-center pb-24 md:pb-16"
+        contentClassName="justify-center"
         sectionRef={bindSectionScrollRef(0)}
       >
         <div className="relative flex w-full max-w-[min(100%,26rem)] flex-col items-stretch px-2 md:max-w-xl md:px-0">
@@ -445,7 +450,7 @@ export function CinematicHome({
         </span>
         <button
           type="button"
-          disabled={sectionIndex <= 0 || waveActive}
+          disabled={waveActive}
           onClick={() => startTransition(-1)}
           className="pointer-events-auto fixed bottom-0 left-0 top-[50vh] z-[95000] flex w-[32px] md:w-[52px] items-center justify-center rounded-r-2xl font-mono text-xl text-[var(--home-text-accent)] transition enabled:cursor-pointer enabled:hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-25 md:w-[60px] md:text-2xl md:rounded-r-3xl"
           style={glassPagerRailStyle("left")}
@@ -453,7 +458,7 @@ export function CinematicHome({
         />
         <button
           type="button"
-          disabled={sectionIndex >= 3 || waveActive}
+          disabled={waveActive}
           onClick={() => startTransition(1)}
           className="pointer-events-auto fixed bottom-0 right-0 top-[50vh] z-[95000] flex w-[32px] md:w-[52px] items-center justify-center rounded-l-2xl font-mono text-xl text-[var(--home-text-accent)] transition enabled:cursor-pointer enabled:hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-25 md:w-[60px] md:text-2xl md:rounded-l-3xl"
           style={glassPagerRailStyle("right")}
