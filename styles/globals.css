@@ -279,22 +279,19 @@ a.text-home-term-link:focus-visible {
   border-color: rgba(80, 200, 120, 0.3);
 }
 
-::-webkit-scrollbar-thumb {
-  border-bottom-left-radius: 25px;
-  border-top-left-radius: 25px;
+html,
+body,
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: #26282b;
-}
-::-webkit-scrollbar-thumb {
-  background: #50c878;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #90fcb4;
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 /* Loading screen animations */
