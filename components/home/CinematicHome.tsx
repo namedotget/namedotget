@@ -29,6 +29,35 @@ const BlogTerminal = dynamic(() => import("@/components/BlogTerminal"), {
 
 const SECTION_LABELS = ["Home", "Blog", "Work", "Contact"] as const;
 
+const ARROW_SCROLL_STEP_VH = 0.22;
+const ARROW_SCROLL_MIN_STEP_PX = 96;
+/** Per-frame approach to target; lower = floatier (60fps-ish). */
+const ARROW_SCROLL_LERP = 0.072;
+
+function sectionMaxScrollTop(el: HTMLElement): number {
+  return Math.max(0, el.scrollHeight - el.clientHeight);
+}
+
+function clampScrollTop(value: number, max: number): number {
+  if (max <= 0) return 0;
+  return Math.min(max, Math.max(0, value));
+}
+
+function stepScrollTowardTarget(
+  el: HTMLElement,
+  targetTop: number,
+  lerp: number,
+): boolean {
+  const y = el.scrollTop;
+  const dist = targetTop - y;
+  if (Math.abs(dist) < 0.45) {
+    el.scrollTop = targetTop;
+    return true;
+  }
+  el.scrollTop = y + dist * lerp;
+  return false;
+}
+
 const HERO_ROLES = [
   "Full-Stack Engineer",
   "AI Systems",
@@ -172,6 +201,9 @@ export function CinematicHome({
     null,
     null,
   ]);
+  const arrowScrollRafRef = useRef<number | null>(null);
+  const arrowScrollTargetRef = useRef<number | null>(null);
+  const arrowScrollSectionRef = useRef(0);
 
   const bindSectionScrollRef = useCallback((i: number) => {
     return (node: HTMLElement | null) => {
@@ -207,6 +239,14 @@ export function CinematicHome({
 
   useEffect(() => {
     setHeroTargetMotionScale(sectionIndex === 0 ? 1 : 0.22);
+  }, [sectionIndex]);
+
+  useEffect(() => {
+    if (arrowScrollRafRef.current !== null) {
+      cancelAnimationFrame(arrowScrollRafRef.current);
+      arrowScrollRafRef.current = null;
+    }
+    arrowScrollTargetRef.current = null;
   }, [sectionIndex]);
 
   const durationMs = prefersReducedMotion
@@ -250,6 +290,34 @@ export function CinematicHome({
   );
 
   useEffect(() => {
+    const tickArrowScroll = () => {
+      arrowScrollRafRef.current = null;
+      const idx = arrowScrollSectionRef.current;
+      const scroller = sectionScrollElsRef.current[idx];
+      let target = arrowScrollTargetRef.current;
+      if (!scroller || target === null) return;
+
+      const max = sectionMaxScrollTop(scroller);
+      target = clampScrollTop(target, max);
+      arrowScrollTargetRef.current = target;
+
+      const done = stepScrollTowardTarget(
+        scroller,
+        target,
+        ARROW_SCROLL_LERP,
+      );
+      if (done) {
+        arrowScrollTargetRef.current = null;
+        return;
+      }
+      arrowScrollRafRef.current = requestAnimationFrame(tickArrowScroll);
+    };
+
+    const scheduleArrowScroll = () => {
+      if (arrowScrollRafRef.current !== null) return;
+      arrowScrollRafRef.current = requestAnimationFrame(tickArrowScroll);
+    };
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") {
         startTransition(1);
@@ -265,16 +333,40 @@ export function CinematicHome({
       const scroller = sectionScrollElsRef.current[sectionIndex];
       if (!scroller) return;
 
-      const step = Math.max(96, Math.round(window.innerHeight * 0.22));
+      const max = sectionMaxScrollTop(scroller);
+      if (max <= 0) return;
+
+      const step = Math.max(
+        ARROW_SCROLL_MIN_STEP_PX,
+        Math.round(window.innerHeight * ARROW_SCROLL_STEP_VH),
+      );
       const delta = e.key === "ArrowDown" ? step : -step;
       e.preventDefault();
-      scroller.scrollBy({
-        top: delta,
-        behavior: prefersReducedMotion ? "auto" : "smooth",
-      });
+
+      if (prefersReducedMotion) {
+        scroller.scrollTop = clampScrollTop(scroller.scrollTop + delta, max);
+        arrowScrollTargetRef.current = null;
+        if (arrowScrollRafRef.current !== null) {
+          cancelAnimationFrame(arrowScrollRafRef.current);
+          arrowScrollRafRef.current = null;
+        }
+        return;
+      }
+
+      arrowScrollSectionRef.current = sectionIndex;
+      let nextTarget = arrowScrollTargetRef.current;
+      if (nextTarget === null) nextTarget = scroller.scrollTop;
+      arrowScrollTargetRef.current = clampScrollTop(nextTarget + delta, max);
+      scheduleArrowScroll();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (arrowScrollRafRef.current !== null) {
+        cancelAnimationFrame(arrowScrollRafRef.current);
+        arrowScrollRafRef.current = null;
+      }
+    };
   }, [startTransition, sectionIndex, prefersReducedMotion]);
 
   return (
