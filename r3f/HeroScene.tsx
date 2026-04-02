@@ -9,9 +9,11 @@ import * as THREE from "three";
 export function HeroScene({
   lightMode,
   audioData,
+  audioActive,
 }: {
   lightMode: boolean;
   audioData: Uint8Array;
+  audioActive: boolean;
 }) {
   const { camera } = useThree();
   const meshRef = useRef();
@@ -48,16 +50,19 @@ export function HeroScene({
       // Clamp delta to avoid jumps on tab switch
       const dt = Math.min(delta, 0.1);
 
-      const speed = 0.005 + (0.01 * window.scrollY) / 500;
+      const baseSpeed = 0.005 + (0.01 * window.scrollY) / 500;
+      const speed = audioActive ? baseSpeed * 0.32 : baseSpeed;
 
       meshRef.current.rotation.x += speed;
       meshRef.current.rotation.y += speed;
       meshRef.current.position.y = -window.scrollY / 500;
       camera.position.z = 5 + window.scrollY / 900;
 
-      // Frame-rate independent audio smoothing
-      const lowSmoothFactor = 1 - Math.exp(-12 * dt);
-      const highSmoothFactor = 1 - Math.exp(-15 * dt);
+      // Slower follow when audio is on (less churn, cheaper visuals)
+      const lowK = audioActive ? 5 : 12;
+      const highK = audioActive ? 6 : 15;
+      const lowSmoothFactor = 1 - Math.exp(-lowK * dt);
+      const highSmoothFactor = 1 - Math.exp(-highK * dt);
 
       smoothedLowFreq.current = THREE.MathUtils.lerp(
         smoothedLowFreq.current,
@@ -74,6 +79,8 @@ export function HeroScene({
 
   return (
     <>
+      <color attach="background" args={["#0a0a0d"]} />
+
       <ambientLight intensity={lightMode ? 0.5 : 0.35} />
 
       {/* Main directional light */}
@@ -101,14 +108,17 @@ export function HeroScene({
         meshRef={meshRef}
         lowFreqRef={smoothedLowFreq}
         highFreqRef={smoothedHighFreq}
+        audioActive={audioActive}
       />
 
       <EffectComposer>
         <Bloom
-          intensity={isMobile ? 0.6 : 1.1}
-          luminanceThreshold={0.15}
-          luminanceSmoothing={0.75}
-          mipmapBlur
+          intensity={
+            (isMobile ? 0.55 : 1.0) * (audioActive ? 0.72 : 1)
+          }
+          luminanceThreshold={0.42}
+          luminanceSmoothing={0.6}
+          mipmapBlur={!audioActive}
         />
       </EffectComposer>
     </>

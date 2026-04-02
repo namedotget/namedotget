@@ -170,13 +170,13 @@ function CellTile({
       }
     }
 
-    // Audio displacement
+    // Audio displacement (kept subtle for perf when music is on)
     const lowFreq = lowFreqRef.current;
     const highFreq = highFreqRef.current;
     const audioIntensity =
       audioMode === "low" ? lowFreq : audioMode === "high" ? highFreq : 0;
     const audioDisplacement =
-      anim.currentExtrude > 0.02 ? audioIntensity * 0.35 : 0;
+      anim.currentExtrude > 0.02 ? audioIntensity * 0.14 : 0;
     const totalExtrude = anim.currentExtrude + audioDisplacement;
 
     if (meshRef.current) {
@@ -196,7 +196,7 @@ function CellTile({
       const baseIntensity =
         behavior === "static" ? 0.05 : 0.1 + extrudeRatio * 0.4;
       const movingBoost = isMoving ? 0.3 : 0;
-      const audioGlow = anim.currentExtrude > 0.02 ? audioIntensity * 0.5 : 0;
+      const audioGlow = anim.currentExtrude > 0.02 ? audioIntensity * 0.22 : 0;
 
       // Apply boot sequence fade-in (subtle, doesn't override color balance)
       const bootFade = Math.max(0.7, anim.emissiveIntensity);
@@ -399,101 +399,113 @@ function WireFrame({ lightMode }: { lightMode: boolean }) {
   );
 }
 
+function buildCircuitCells(audioActive: boolean) {
+  const items: Array<{
+    position: [number, number, number];
+    normal: [number, number, number];
+    seed: number;
+    behavior: "static" | "rare" | "normal" | "frequent";
+    canGlow: boolean;
+    audioMode: "low" | "high" | "none";
+  }> = [];
+
+  const gridSize = 5;
+  const cellSize = 2 / gridSize;
+  const halfGrid = (gridSize - 1) / 2;
+
+  const faces: Array<{
+    normal: [number, number, number];
+    uAxis: "x" | "y" | "z";
+    vAxis: "x" | "y" | "z";
+    offset: number;
+  }> = [
+    { normal: [0, 0, 1], uAxis: "x", vAxis: "y", offset: 1 },
+    { normal: [0, 0, -1], uAxis: "x", vAxis: "y", offset: -1 },
+    { normal: [0, 1, 0], uAxis: "x", vAxis: "z", offset: 1 },
+    { normal: [0, -1, 0], uAxis: "x", vAxis: "z", offset: -1 },
+    { normal: [1, 0, 0], uAxis: "z", vAxis: "y", offset: 1 },
+    { normal: [-1, 0, 0], uAxis: "z", vAxis: "y", offset: -1 },
+  ];
+
+  faces.forEach((face, faceIdx) => {
+    for (let i = 0; i < gridSize; i++) {
+      for (let j = 0; j < gridSize; j++) {
+        const u = (i - halfGrid) * cellSize;
+        const v = (j - halfGrid) * cellSize;
+
+        const pos: [number, number, number] = [0, 0, 0];
+
+        if (face.uAxis === "x") pos[0] = u;
+        if (face.uAxis === "y") pos[1] = u;
+        if (face.uAxis === "z") pos[2] = u;
+
+        if (face.vAxis === "x") pos[0] = v;
+        if (face.vAxis === "y") pos[1] = v;
+        if (face.vAxis === "z") pos[2] = v;
+
+        if (face.normal[0] !== 0) pos[0] = face.offset;
+        if (face.normal[1] !== 0) pos[1] = face.offset;
+        if (face.normal[2] !== 0) pos[2] = face.offset;
+
+        const seed = faceIdx * 1000 + i * 100 + j;
+        const rand = seededRandom(seed);
+        let behavior: "static" | "rare" | "normal" | "frequent";
+
+        if (rand < 0.25) {
+          behavior = "static";
+        } else if (rand < 0.5) {
+          behavior = "rare";
+        } else if (rand < 0.8) {
+          behavior = "normal";
+        } else {
+          behavior = "frequent";
+        }
+
+        const canGlow =
+          behavior !== "static" && seededRandom(seed + 500) > 0.6;
+
+        const audioRand = seededRandom(seed + 777);
+        let audioMode: "low" | "high" | "none";
+        if (audioActive) {
+          if (audioRand < 0.06) audioMode = "low";
+          else if (audioRand < 0.12) audioMode = "high";
+          else audioMode = "none";
+        } else {
+          audioMode = "none";
+        }
+
+        items.push({
+          position: pos,
+          normal: face.normal,
+          seed,
+          behavior,
+          canGlow,
+          audioMode,
+        });
+      }
+    }
+  });
+
+  return items;
+}
+
 export function CircuitBox({
   lightMode,
   meshRef,
   lowFreqRef,
   highFreqRef,
+  audioActive,
 }: {
   lightMode: boolean;
   meshRef: any;
   lowFreqRef: React.MutableRefObject<number>;
   highFreqRef: React.MutableRefObject<number>;
+  audioActive: boolean;
 }) {
-  const cells = useMemo(() => {
-    const items: Array<{
-      position: [number, number, number];
-      normal: [number, number, number];
-      seed: number;
-      behavior: "static" | "rare" | "normal" | "frequent";
-      canGlow: boolean;
-      audioMode: "low" | "high" | "none";
-    }> = [];
-
-    const gridSize = 5;
-    const cellSize = 2 / gridSize;
-    const halfGrid = (gridSize - 1) / 2;
-
-    const faces: Array<{
-      normal: [number, number, number];
-      uAxis: "x" | "y" | "z";
-      vAxis: "x" | "y" | "z";
-      offset: number;
-    }> = [
-      { normal: [0, 0, 1], uAxis: "x", vAxis: "y", offset: 1 },
-      { normal: [0, 0, -1], uAxis: "x", vAxis: "y", offset: -1 },
-      { normal: [0, 1, 0], uAxis: "x", vAxis: "z", offset: 1 },
-      { normal: [0, -1, 0], uAxis: "x", vAxis: "z", offset: -1 },
-      { normal: [1, 0, 0], uAxis: "z", vAxis: "y", offset: 1 },
-      { normal: [-1, 0, 0], uAxis: "z", vAxis: "y", offset: -1 },
-    ];
-
-    faces.forEach((face, faceIdx) => {
-      for (let i = 0; i < gridSize; i++) {
-        for (let j = 0; j < gridSize; j++) {
-          const u = (i - halfGrid) * cellSize;
-          const v = (j - halfGrid) * cellSize;
-
-          const pos: [number, number, number] = [0, 0, 0];
-
-          if (face.uAxis === "x") pos[0] = u;
-          if (face.uAxis === "y") pos[1] = u;
-          if (face.uAxis === "z") pos[2] = u;
-
-          if (face.vAxis === "x") pos[0] = v;
-          if (face.vAxis === "y") pos[1] = v;
-          if (face.vAxis === "z") pos[2] = v;
-
-          if (face.normal[0] !== 0) pos[0] = face.offset;
-          if (face.normal[1] !== 0) pos[1] = face.offset;
-          if (face.normal[2] !== 0) pos[2] = face.offset;
-
-          const seed = faceIdx * 1000 + i * 100 + j;
-          const rand = seededRandom(seed);
-          let behavior: "static" | "rare" | "normal" | "frequent";
-
-          if (rand < 0.25) {
-            behavior = "static";
-          } else if (rand < 0.5) {
-            behavior = "rare";
-          } else if (rand < 0.8) {
-            behavior = "normal";
-          } else {
-            behavior = "frequent";
-          }
-
-          const canGlow =
-            behavior !== "static" && seededRandom(seed + 500) > 0.6;
-
-          // Audio mode assignment
-          const audioRand = seededRandom(seed + 777);
-          const audioMode: "low" | "high" | "none" =
-            audioRand < 0.25 ? "low" : audioRand < 0.5 ? "high" : "none";
-
-          items.push({
-            position: pos,
-            normal: face.normal,
-            seed,
-            behavior,
-            canGlow,
-            audioMode,
-          });
-        }
-      }
-    });
-
-    return items;
-  }, []);
+  const cells = useMemo(
+    () => buildCircuitCells(audioActive),
+    [audioActive]
+  );
 
   const cellSize = 2 / 5;
 

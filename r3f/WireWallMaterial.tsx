@@ -7,7 +7,7 @@ import * as THREE from "three";
 const WireWallShaderMaterial = shaderMaterial(
   {
     uTime: 0,
-    uLightMode: false,
+    uModeBlend: 0,
   },
   // Vertex Shader
   `
@@ -24,7 +24,7 @@ const WireWallShaderMaterial = shaderMaterial(
   // Fragment Shader
   `
     uniform float uTime;
-    uniform bool uLightMode;
+    uniform float uModeBlend;
     
     varying vec2 vUv;
     varying vec4 vScreenPos;
@@ -79,16 +79,13 @@ const WireWallShaderMaterial = shaderMaterial(
       // Screen-space UV
       vec2 uv = (vScreenPos.xy / vScreenPos.w) * 0.5 + 0.5;
       
-      // === DARK GUNMETAL BASE ===
-      vec3 baseColor = uLightMode ? vec3(0.22, 0.23, 0.26) : vec3(0.04, 0.04, 0.05);
+      vec3 baseColor = vec3(10.0 / 255.0, 10.0 / 255.0, 13.0 / 255.0);
       
-      // Subtle horizontal brushed texture
       float brush = fract(sin(uv.y * 800.0) * 43758.5453);
-      brush = brush * 0.012;
+      brush = brush * 0.0015;
       vec3 metal = baseColor + vec3(brush);
       
-      // Very subtle vertical gradient
-      metal *= 0.97 + uv.y * 0.06;
+      metal *= 0.992 + uv.y * 0.012;
       
       // === WIRE NETWORK (realistic cable routing) ===
       float totalGlow = 0.0;
@@ -120,14 +117,12 @@ const WireWallShaderMaterial = shaderMaterial(
       // Clamp glow
       totalGlow = clamp(totalGlow, 0.0, 1.0);
       
-      // === GLOW COLOR ===
-      vec3 glowColor = vec3(0.314, 0.784, 0.471); // #50C878
+      vec3 glowDark = vec3(0.314, 0.784, 0.471);
+      vec3 glowLight = vec3(0.07, 0.3, 0.24);
+      vec3 glowColor = mix(glowDark, glowLight, uModeBlend);
       
-      // Apply glow to metal (reduced intensity)
       vec3 color = metal;
       color = mix(color, glowColor, totalGlow * 0.7);
-      
-      // Reduced bloom contribution
       color += glowColor * totalGlow * 0.35;
       
       gl_FragColor = vec4(color, 1.0);
@@ -137,19 +132,25 @@ const WireWallShaderMaterial = shaderMaterial(
 
 extend({ WireWallShaderMaterial });
 
+const MODE_BLEND_LAMBDA = 10;
+
 export const WireWall = forwardRef(function WireWall(
   { lightMode }: { lightMode: boolean },
   ref
 ) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const modeBlend = useRef(lightMode ? 1 : 0);
 
   useImperativeHandle(ref, () => materialRef.current);
 
-  useFrame((state) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
-      materialRef.current.uniforms.uLightMode.value = lightMode;
-    }
+  useFrame((state, delta) => {
+    if (!materialRef.current) return;
+    const dt = Math.min(delta, 0.1);
+    const target = lightMode ? 1 : 0;
+    const t = 1 - Math.exp(-MODE_BLEND_LAMBDA * dt);
+    modeBlend.current = THREE.MathUtils.lerp(modeBlend.current, target, t);
+    materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
+    materialRef.current.uniforms.uModeBlend.value = modeBlend.current;
   });
 
   return <wireWallShaderMaterial ref={materialRef} />;
