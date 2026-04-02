@@ -287,10 +287,10 @@ export function CinematicHome({
       <SectionChrome
         index={0}
         active={sectionIndex === 0}
-        contentClassName="justify-center"
+        contentClassName="justify-center items-center"
         sectionRef={bindSectionScrollRef(0)}
       >
-        <div className="relative flex w-full max-w-[min(100%,26rem)] flex-col items-stretch px-2 md:max-w-xl md:px-0">
+        <div className="relative mx-auto flex w-full max-w-[min(100%,26rem)] flex-col items-stretch px-2 md:max-w-xl md:px-0">
           <div
             className="pointer-events-none home-hero-ambient absolute left-1/2 top-[18%] h-[min(55vw,280px)] w-[min(92vw,420px)] -translate-x-1/2 rounded-full opacity-50 blur-[64px] md:top-[12%] md:h-[320px] md:w-[480px]"
             style={{
