@@ -1,20 +1,19 @@
 //@ts-nocheck
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CircuitBox } from "./CircuitMaterial";
 import { WireWall } from "./WireWallMaterial";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 
+import { audioSpectrumBridge } from "@/lib/audioSpectrumBridge";
 import { heroMotionBridge } from "@/lib/heroMotionBridge";
 
 export function HeroScene({
   lightMode,
-  audioData,
   audioActive,
 }: {
   lightMode: boolean;
-  audioData: Uint8Array;
   audioActive: boolean;
 }) {
   const { camera } = useThree();
@@ -31,22 +30,6 @@ export function HeroScene({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const { lowFreq, highFreq } = useMemo(() => {
-    if (!audioData || audioData.length === 0)
-      return { lowFreq: 0, highFreq: 0 };
-    // Low frequencies: first 10 bins (bass)
-    const lowSlice = audioData.slice(0, 10);
-    const lowSum = lowSlice.reduce((acc, val) => acc + val, 0);
-    const lowFreq = lowSum / (lowSlice.length * 255);
-
-    // High frequencies: bins 20-60 (treble/mids)
-    const highSlice = audioData.slice(20, 60);
-    const highSum = highSlice.reduce((acc, val) => acc + val, 0);
-    const highFreq = highSum / (highSlice.length * 255);
-
-    return { lowFreq, highFreq };
-  }, [audioData]);
 
   useFrame((_, delta) => {
     if (meshRef.current) {
@@ -77,13 +60,13 @@ export function HeroScene({
 
       smoothedLowFreq.current = THREE.MathUtils.lerp(
         smoothedLowFreq.current,
-        lowFreq,
-        lowSmoothFactor
+        audioSpectrumBridge.lowFreq,
+        lowSmoothFactor,
       );
       smoothedHighFreq.current = THREE.MathUtils.lerp(
         smoothedHighFreq.current,
-        highFreq,
-        highSmoothFactor
+        audioSpectrumBridge.highFreq,
+        highSmoothFactor,
       );
     }
   });

@@ -11,10 +11,6 @@ import {
   type CSSProperties,
 } from "react";
 
-import { Items } from "@/components/Items";
-import { Contact } from "@/components/Contact";
-import { SkillsSection } from "@/components/SkillsSection";
-import { Footer } from "@/components/layout/Footer";
 import type { BlogPostJson } from "@/lib/blogTerminal";
 import { setHeroTargetMotionScale } from "@/lib/heroMotionBridge";
 import {
@@ -26,6 +22,32 @@ const BlogTerminal = dynamic(() => import("@/components/BlogTerminal"), {
   ssr: false,
   loading: () => <div className="min-h-[200px] w-full" aria-hidden />,
 });
+
+const HomeWorkSectionContent = dynamic(
+  () =>
+    import("@/components/home/HomeWorkSectionContent").then(
+      (m) => m.HomeWorkSectionContent,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[min(42vh,280px)] w-full" aria-hidden />
+    ),
+  },
+);
+
+const HomeContactSectionContent = dynamic(
+  () =>
+    import("@/components/home/HomeContactSectionContent").then(
+      (m) => m.HomeContactSectionContent,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[min(42vh,280px)] w-full" aria-hidden />
+    ),
+  },
+);
 
 const SECTION_LABELS = ["Home", "Blog", "Work", "Contact"] as const;
 
@@ -193,6 +215,9 @@ export function CinematicHome({
   const [waveDir, setWaveDir] = useState<1 | -1>(1);
   const [waveActive, setWaveActive] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [mountWorkSectionBody, setMountWorkSectionBody] = useState(false);
+  const [mountContactSectionBody, setMountContactSectionBody] =
+    useState(false);
   const pendingDeltaRef = useRef<1 | -1>(1);
   const animatingRef = useRef(false);
   const sectionScrollElsRef = useRef<(HTMLElement | null)[]>([
@@ -239,6 +264,11 @@ export function CinematicHome({
 
   useEffect(() => {
     setHeroTargetMotionScale(sectionIndex === 0 ? 1 : 0.22);
+  }, [sectionIndex]);
+
+  useEffect(() => {
+    if (sectionIndex === 2) setMountWorkSectionBody(true);
+    if (sectionIndex === 3) setMountContactSectionBody(true);
   }, [sectionIndex]);
 
   useEffect(() => {
@@ -490,9 +520,14 @@ export function CinematicHome({
         active={sectionIndex === 2}
         sectionRef={bindSectionScrollRef(2)}
       >
-        <Items items={projects} label="Projects" link />
-        <Items items={contributions} label="Contributions" link />
-        <SkillsSection />
+        {mountWorkSectionBody ? (
+          <HomeWorkSectionContent
+            projects={projects}
+            contributions={contributions}
+          />
+        ) : (
+          <div className="min-h-[min(42vh,280px)] w-full" aria-hidden />
+        )}
       </SectionChrome>
 
       <SectionChrome
@@ -500,22 +535,14 @@ export function CinematicHome({
         active={sectionIndex === 3}
         sectionRef={bindSectionScrollRef(3)}
       >
-        <div className="home-hero-inner-panel mt-10 px-5 py-6 text-center md:mt-14 md:px-7 md:py-7">
-          <p className="home-text-xf text-sm leading-relaxed text-home-body md:text-[0.95rem]">
-            Thanks for your time. Have a great day!
-          </p>
-          <button
-            type="button"
-            disabled={waveActive}
-            onClick={() => selectSection(0)}
-            className="home-text-xf mt-5 inline-flex items-center gap-1 rounded-lg border border-[color-mix(in_srgb,var(--home-text-accent)_35%,transparent)] bg-[color-mix(in_srgb,var(--home-text-accent)_10%,rgba(0,0,0,0.25))] px-4 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[var(--home-text-accent)] shadow-[0_0_18px_color-mix(in_srgb,var(--home-text-accent)_15%,transparent)] transition-[transform,box-shadow,border-color] duration-300 enabled:cursor-pointer enabled:hover:border-[var(--home-text-accent-hover)] enabled:hover:text-[var(--home-text-accent-hover)] enabled:hover:shadow-[0_0_24px_color-mix(in_srgb,var(--home-text-accent)_22%,transparent)] enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 md:mt-6 md:px-5 md:text-xs"
-          >
-            <span aria-hidden>←</span>
-            <span>Back to intro</span>
-          </button>
-        </div>
-        <Contact />
-        <Footer />
+        {mountContactSectionBody ? (
+          <HomeContactSectionContent
+            waveActive={waveActive}
+            onBackToIntro={() => selectSection(0)}
+          />
+        ) : (
+          <div className="min-h-[min(42vh,280px)] w-full" aria-hidden />
+        )}
       </SectionChrome>
 
       <PixelWaveTransition

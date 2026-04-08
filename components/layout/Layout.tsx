@@ -1,5 +1,5 @@
 import { Toaster } from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { Footer } from "./Footer";
@@ -54,8 +54,12 @@ export function Layout({ children }: any) {
   const router = useRouter();
   const [lightMode, setLightMode] = useState(true);
   const [isCanvasReady, setIsCanvasReady] = useState(false);
-  const { audioData, isPlaying, isMuted, startAudio, toggleMute } =
-    useAudioAnalyzer();
+  const [mountToggleCanvas, setMountToggleCanvas] = useState(false);
+  const { isPlaying, isMuted, startAudio, toggleMute } = useAudioAnalyzer();
+
+  const onBackgroundReady = useCallback(() => {
+    setIsCanvasReady(true);
+  }, []);
 
   useEffect(() => {
     const storedLightMode = JSON.parse(
@@ -72,16 +76,41 @@ export function Layout({ children }: any) {
     }
   }, [lightMode]);
 
+  useEffect(() => {
+    if (!isCanvasReady) return;
+    let cancelled = false;
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(
+        () => {
+          if (!cancelled) setMountToggleCanvas(true);
+        },
+        { timeout: 900 },
+      );
+      return () => {
+        cancelled = true;
+        window.cancelIdleCallback(id);
+      };
+    }
+    const tid = window.setTimeout(() => {
+      if (!cancelled) setMountToggleCanvas(true);
+    }, 450);
+    return () => {
+      cancelled = true;
+      clearTimeout(tid);
+    };
+  }, [isCanvasReady]);
+
   return (
     <>
       <LoadingScreen isLoaded={isCanvasReady} />
       <BackgroundScroll
         lightMode={lightMode}
-        audioData={audioData}
         audioActive={isPlaying && !isMuted}
-        onReady={() => setIsCanvasReady(true)}
+        onReady={onBackgroundReady}
       />
-      <ToggleMesh lightMode={lightMode} setLightMode={setLightMode} />
+      {mountToggleCanvas ? (
+        <ToggleMesh lightMode={lightMode} setLightMode={setLightMode} />
+      ) : null}
       <button
         onClick={(e) => {
           e.stopPropagation();

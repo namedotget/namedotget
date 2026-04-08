@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import {
+  audioSpectrumBridge,
+  computeSpectrumFromBins,
+  resetAudioSpectrumBridge,
+} from "@/lib/audioSpectrumBridge";
 
 const TARGET_VOLUME = 0.4;
 const FADE_DURATION = 3000;
@@ -12,7 +17,6 @@ export function useAudioAnalyzer() {
   const animationFrameRef = useRef<number>(0);
   const hasStartedRef = useRef(false);
 
-  const [audioData, setAudioData] = useState<Uint8Array>(new Uint8Array(128));
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const savedVolumeRef = useRef(TARGET_VOLUME);
@@ -31,6 +35,7 @@ export function useAudioAnalyzer() {
 
     audio.addEventListener("ended", () => {
       setIsPlaying(false);
+      resetAudioSpectrumBridge();
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -78,7 +83,11 @@ export function useAudioAnalyzer() {
         const updateAudioData = () => {
           if (analyserRef.current && dataArrayRef.current) {
             analyserRef.current.getByteFrequencyData(dataArrayRef.current);
-            setAudioData(new Uint8Array(dataArrayRef.current));
+            const { lowFreq, highFreq } = computeSpectrumFromBins(
+              dataArrayRef.current,
+            );
+            audioSpectrumBridge.lowFreq = lowFreq;
+            audioSpectrumBridge.highFreq = highFreq;
           }
           animationFrameRef.current = requestAnimationFrame(updateAudioData);
         };
@@ -92,6 +101,7 @@ export function useAudioAnalyzer() {
 
   useEffect(() => {
     return () => {
+      resetAudioSpectrumBridge();
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -119,5 +129,5 @@ export function useAudioAnalyzer() {
     }
   }, [isMuted]);
 
-  return { audioData, isPlaying, isMuted, startAudio, toggleMute };
+  return { isPlaying, isMuted, startAudio, toggleMute };
 }

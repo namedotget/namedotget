@@ -208,9 +208,11 @@ function FluidBall({
 function ToggleScene({
   lightMode,
   setLightMode,
+  isMobile,
 }: {
   lightMode: boolean;
   setLightMode: (value: boolean) => void;
+  isMobile: boolean;
 }) {
   const groupRef = useRef<THREE.Group>();
   const trackMaterialRef = useRef<THREE.MeshStandardMaterial>();
@@ -332,10 +334,10 @@ function ToggleScene({
 
       <EffectComposer>
         <Bloom
-          intensity={1.8}
+          intensity={isMobile ? 1.05 : 1.55}
           luminanceThreshold={0.05}
           luminanceSmoothing={0.9}
-          mipmapBlur
+          mipmapBlur={!isMobile}
         />
       </EffectComposer>
     </>
@@ -374,10 +376,24 @@ export function ToggleMesh({
     >
       <Canvas
         flat
+        dpr={[1, 2]}
+        gl={{
+          powerPreference: "high-performance",
+          antialias: true,
+          stencil: false,
+          alpha: true,
+        }}
+        onCreated={({ gl }) => {
+          gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        }}
         camera={{ position: [0, 0, 1.2], fov: 50 }}
         style={{ background: "transparent" }}
       >
-        <ToggleScene lightMode={lightMode} setLightMode={setLightMode} />
+        <ToggleScene
+          lightMode={lightMode}
+          setLightMode={setLightMode}
+          isMobile={isMobile}
+        />
       </Canvas>
     </div>
   );

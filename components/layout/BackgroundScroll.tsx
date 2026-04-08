@@ -4,27 +4,26 @@ import { useEffect, useRef } from "react";
 
 export default function BackgroundScroll({
   lightMode,
-  audioData,
   audioActive,
   onReady,
 }: {
   lightMode: boolean;
-  audioData: Uint8Array;
   audioActive: boolean;
   onReady?: () => void;
 }) {
   const hasCalledReady = useRef(false);
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   useEffect(() => {
-    if (!hasCalledReady.current && onReady) {
-      // Small delay to allow canvas to fully render
-      const timer = setTimeout(() => {
+    const fallback = window.setTimeout(() => {
+      if (!hasCalledReady.current && onReadyRef.current) {
         hasCalledReady.current = true;
-        onReady();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [onReady]);
+        onReadyRef.current();
+      }
+    }, 1200);
+    return () => clearTimeout(fallback);
+  }, []);
 
   return (
     <>
@@ -34,12 +33,30 @@ export default function BackgroundScroll({
           backgroundColor: "#0a0a0d",
         }}
       >
-        <Canvas flat shadows>
-          <HeroScene
-            lightMode={lightMode}
-            audioData={audioData}
-            audioActive={audioActive}
-          />
+        <Canvas
+          flat
+          dpr={[1, 2]}
+          gl={{
+            powerPreference: "high-performance",
+            antialias: true,
+            stencil: false,
+            alpha: false,
+          }}
+          onCreated={({ gl, scene, camera }) => {
+            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            if (typeof gl.compile === "function") {
+              gl.compile(scene, camera);
+            }
+            const signalReady = () => {
+              if (!hasCalledReady.current && onReadyRef.current) {
+                hasCalledReady.current = true;
+                onReadyRef.current();
+              }
+            };
+            requestAnimationFrame(() => requestAnimationFrame(signalReady));
+          }}
+        >
+          <HeroScene lightMode={lightMode} audioActive={audioActive} />
         </Canvas>
       </div>
     </>
