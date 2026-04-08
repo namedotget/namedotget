@@ -3,7 +3,6 @@ import {
   type Dispatch,
   type SetStateAction,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -81,15 +80,10 @@ function readReducedMotion(): boolean {
 }
 
 function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(() =>
-    typeof window === "undefined" ? false : readReducedMotion(),
-  );
-
-  useLayoutEffect(() => {
-    setReduced(readReducedMotion());
-  }, []);
+  const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
+    setReduced(readReducedMotion());
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const onChange = () => setReduced(readReducedMotion());
     mq.addEventListener("change", onChange);

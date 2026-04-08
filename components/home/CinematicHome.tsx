@@ -5,12 +5,14 @@ import { useRouter } from "next/router";
 import { PixelWaveTransition } from "@/r3f/PixelWaveTransition";
 import {
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useState,
   type CSSProperties,
 } from "react";
 
+import { LightModeContext } from "@/components/layout/Layout";
 import type { BlogPostJson } from "@/lib/blogTerminal";
 import { setHeroTargetMotionScale } from "@/lib/heroMotionBridge";
 import {
@@ -87,27 +89,41 @@ const HERO_ROLES = [
   "Founder",
 ] as const;
 
-function readAccentHex(): string {
-  if (typeof window === "undefined") return "#50c878";
-  const raw = getComputedStyle(document.documentElement)
-    .getPropertyValue("--home-text-accent")
-    .trim();
-  if (!raw) return "#50c878";
-  return raw.startsWith("#") ? raw : `#${raw}`;
-}
-
 function glassPagerRailStyle(side: "left" | "right"): CSSProperties {
-  const hairline = "1px solid rgba(80, 200, 120, 0.26)";
+  const hairline =
+    "1px solid color-mix(in srgb, var(--home-text-accent) 52%, transparent)";
+  const glowOut =
+    side === "left"
+      ? [
+          "-5px 0 22px color-mix(in srgb, var(--home-text-accent) 38%, transparent)",
+          "-14px 0 46px color-mix(in srgb, var(--home-text-accent) 20%, transparent)",
+          "-26px 0 72px color-mix(in srgb, var(--home-text-accent) 10%, transparent)",
+        ].join(", ")
+      : [
+          "5px 0 22px color-mix(in srgb, var(--home-text-accent) 38%, transparent)",
+          "14px 0 46px color-mix(in srgb, var(--home-text-accent) 20%, transparent)",
+          "26px 0 72px color-mix(in srgb, var(--home-text-accent) 10%, transparent)",
+        ].join(", ");
+  const depth =
+    side === "left"
+      ? "4px 0 36px rgba(0,0,0,0.55)"
+      : "-4px 0 36px rgba(0,0,0,0.55)";
+  const insetHi =
+    side === "left"
+      ? "inset -1px 0 0 color-mix(in srgb, var(--home-text-accent) 35%, transparent)"
+      : "inset 1px 0 0 color-mix(in srgb, var(--home-text-accent) 35%, transparent)";
+  const insetLo =
+    side === "left"
+      ? "inset -2px 0 14px color-mix(in srgb, var(--home-text-accent) 12%, transparent)"
+      : "inset 2px 0 14px color-mix(in srgb, var(--home-text-accent) 12%, transparent)";
   return {
-    background: "rgba(0, 0, 0, 0.42)",
+    background:
+      "color-mix(in srgb, var(--home-text-accent) 11%, rgba(0,0,0,0.58))",
     backdropFilter: "blur(16px) saturate(120%)",
     WebkitBackdropFilter: "blur(16px) saturate(120%)",
     border: "none",
     ...(side === "left" ? { borderRight: hairline } : { borderLeft: hairline }),
-    boxShadow:
-      side === "left"
-        ? "4px 0 32px rgba(0,0,0,0.42), inset -1px 0 0 rgba(130, 235, 185, 0.12)"
-        : "-4px 0 32px rgba(0,0,0,0.42), inset 1px 0 0 rgba(130, 235, 185, 0.12)",
+    boxShadow: [glowOut, depth, insetHi, insetLo].join(", "),
   };
 }
 
@@ -209,8 +225,9 @@ export function CinematicHome({
   interClassName: string;
 }) {
   const router = useRouter();
+  const lightMode = useContext(LightModeContext);
+  const accentHex = lightMode ? "#42c98a" : "#50c878";
   const [sectionIndex, setSectionIndex] = useState(0);
-  const [accentHex, setAccentHex] = useState("#50c878");
   const [runId, setRunId] = useState(0);
   const [waveDir, setWaveDir] = useState<1 | -1>(1);
   const [waveActive, setWaveActive] = useState(false);
@@ -242,16 +259,6 @@ export function CinematicHome({
     const onChange = () => setPrefersReducedMotion(rm.matches);
     rm.addEventListener("change", onChange);
     return () => rm.removeEventListener("change", onChange);
-  }, []);
-
-  useEffect(() => {
-    setAccentHex(readAccentHex());
-    const obs = new MutationObserver(() => setAccentHex(readAccentHex()));
-    obs.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    return () => obs.disconnect();
   }, []);
 
   useEffect(() => {
@@ -500,6 +507,7 @@ export function CinematicHome({
                   {`arrow left/right: sections.`}
                   <br /> {`arrow up/down: scroll.`}
                   <br /> {`side rails: sections.`}
+                  <br /> {`bottom: enable ambient sound.`}
                 </p>
               </div>
             </div>
@@ -564,18 +572,32 @@ export function CinematicHome({
           type="button"
           disabled={waveActive}
           onClick={() => startTransition(-1)}
-          className="pointer-events-auto fixed bottom-0 left-0 top-[50vh] z-[95000] flex w-[32px] md:w-[52px] items-center justify-center rounded-r-2xl font-mono text-xl text-[var(--home-text-accent)] transition enabled:cursor-pointer enabled:hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-25 md:w-[60px] md:text-2xl md:rounded-r-3xl"
+          className={[
+            "home-pager-rail home-pager-rail--left pointer-events-auto fixed bottom-0 left-0 top-[50vh] z-[95000] flex w-[32px] md:w-[52px] items-center justify-center overflow-hidden rounded-r-2xl font-mono text-xl transition enabled:cursor-pointer enabled:hover:bg-white/[0.07] disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--home-text-accent)] md:w-[60px] md:text-2xl md:rounded-r-3xl",
+            waveActive ? "home-pager-rail--subdued disabled:opacity-30" : "",
+          ].join(" ")}
           style={glassPagerRailStyle("left")}
           aria-label="Previous section"
-        />
+        >
+          <span className="home-pager-rail__chevron" aria-hidden>
+            ‹
+          </span>
+        </button>
         <button
           type="button"
           disabled={waveActive}
           onClick={() => startTransition(1)}
-          className="pointer-events-auto fixed bottom-0 right-0 top-[50vh] z-[95000] flex w-[32px] md:w-[52px] items-center justify-center rounded-l-2xl font-mono text-xl text-[var(--home-text-accent)] transition enabled:cursor-pointer enabled:hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-25 md:w-[60px] md:text-2xl md:rounded-l-3xl"
+          className={[
+            "home-pager-rail home-pager-rail--right pointer-events-auto fixed bottom-0 right-0 top-[50vh] z-[95000] flex w-[32px] md:w-[52px] items-center justify-center overflow-hidden rounded-l-2xl font-mono text-xl transition enabled:cursor-pointer enabled:hover:bg-white/[0.07] disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--home-text-accent)] md:w-[60px] md:text-2xl md:rounded-l-3xl",
+            waveActive ? "home-pager-rail--subdued disabled:opacity-30" : "",
+          ].join(" ")}
           style={glassPagerRailStyle("right")}
           aria-label="Next section"
-        />
+        >
+          <span className="home-pager-rail__chevron" aria-hidden>
+            ›
+          </span>
+        </button>
       </nav>
     </main>
   );

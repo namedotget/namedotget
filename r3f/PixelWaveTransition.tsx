@@ -1,6 +1,6 @@
 //@ts-nocheck
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useRef, useEffect, useMemo, useLayoutEffect, useState } from "react";
+import { useRef, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import * as THREE from "three";
 
@@ -99,7 +99,7 @@ const fragmentShader = /* glsl */ `
 
 function SyncGlSize({ width, height }: { width: number; height: number }) {
   const setSize = useThree((s) => s.setSize);
-  useLayoutEffect(() => {
+  useEffect(() => {
     setSize(width, height, false);
   }, [width, height, setSize]);
   return null;
@@ -125,7 +125,7 @@ function WaveScene({
   const endFired = useRef(false);
   const t0 = useRef(0);
   const lastRunId = useRef(-1);
-  const { gl } = useThree();
+  const gl = useThree((s) => s.gl);
 
   const uniforms = useMemo(
     () => ({
@@ -219,8 +219,10 @@ function readViewportCssSize() {
 }
 
 function useViewportCssSize() {
-  const [size, setSize] = useState(readViewportCssSize);
-  useLayoutEffect(() => {
+  const [size, setSize] = useState(() =>
+    typeof window === "undefined" ? { w: 1, h: 1 } : readViewportCssSize(),
+  );
+  useEffect(() => {
     const apply = () => setSize(readViewportCssSize());
     apply();
     window.addEventListener("resize", apply);
@@ -233,15 +235,7 @@ function useViewportCssSize() {
   return size;
 }
 
-export function PixelWaveTransition({
-  runId,
-  active,
-  direction,
-  accentHex,
-  durationMs,
-  onMid,
-  onEnd,
-}: {
+type PixelWaveTransitionProps = {
   runId: number;
   active: boolean;
   direction: 1 | -1;
@@ -249,11 +243,23 @@ export function PixelWaveTransition({
   durationMs: number;
   onMid: () => void;
   onEnd: () => void;
-}) {
-  const vp = useViewportCssSize();
+};
 
-  if (!active) return null;
-  if (typeof document === "undefined") return null;
+/** When `active` is false, skip hooks that subscribe to resize/visualViewport (avoids idle setState churn). */
+export function PixelWaveTransition(props: PixelWaveTransitionProps) {
+  if (!props.active || typeof document === "undefined") return null;
+  return <PixelWaveTransitionActive {...props} />;
+}
+
+function PixelWaveTransitionActive({
+  runId,
+  direction,
+  accentHex,
+  durationMs,
+  onMid,
+  onEnd,
+}: PixelWaveTransitionProps) {
+  const vp = useViewportCssSize();
 
   const wPx = vp.w;
   const hPx = vp.h;

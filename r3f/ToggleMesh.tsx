@@ -1,6 +1,12 @@
 //@ts-nocheck
 import { Canvas, useFrame, extend } from "@react-three/fiber";
-import { useRef, useState, useEffect, useMemo } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  useMemo,
+  type MutableRefObject,
+} from "react";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { shaderMaterial } from "@react-three/drei";
 import * as THREE from "three";
@@ -162,19 +168,19 @@ const FluidMaterial = shaderMaterial(
       
       gl_FragColor = vec4(finalColor, 1.0);
     }
-  `
+  `,
 );
 
 extend({ FluidMaterial });
 
 function FluidBall({
-  position,
-  velocity,
+  ballXRef,
+  velocityRef,
   direction,
   lightMode,
 }: {
-  position: number;
-  velocity: number;
+  ballXRef: MutableRefObject<number>;
+  velocityRef: MutableRefObject<number>;
   direction: number;
   lightMode: boolean;
 }) {
@@ -182,11 +188,16 @@ function FluidBall({
   const materialRef = useRef<any>();
 
   useFrame((state) => {
+    const x = ballXRef.current;
+    const vel = velocityRef.current;
+    if (meshRef.current) {
+      meshRef.current.position.x = x;
+    }
     if (materialRef.current) {
       materialRef.current.uTime = state.clock.elapsedTime;
-      materialRef.current.uVelocity = velocity;
+      materialRef.current.uVelocity = vel;
       materialRef.current.uDirection = direction;
-      materialRef.current.uBallX = position;
+      materialRef.current.uBallX = x;
       materialRef.current.uLightMode = lightMode;
       materialRef.current.uColor = lightMode
         ? new THREE.Color("#1a1a1a")
@@ -198,7 +209,7 @@ function FluidBall({
   });
 
   return (
-    <mesh ref={meshRef} position={[position, 0, 0.08]}>
+    <mesh ref={meshRef} position={[ballXRef.current, 0, 0.08]}>
       <sphereGeometry args={[0.17, 64, 64]} />
       <fluidMaterial ref={materialRef} />
     </mesh>
@@ -218,10 +229,10 @@ function ToggleScene({
   const trackMaterialRef = useRef<THREE.MeshStandardMaterial>();
 
   const [hovered, setHovered] = useState(false);
-  const [clicked, setClicked] = useState(false);
-  const [ballPosition, setBallPosition] = useState(lightMode ? -0.35 : 0.35);
-  const [velocity, setVelocity] = useState(0);
-  const [scale, setScale] = useState(1);
+  const ballPositionRef = useRef(lightMode ? -0.35 : 0.35);
+  const velocityRef = useRef(0);
+  const scaleRef = useRef(1);
+  const clickedRef = useRef(false);
 
   const targetPosition = lightMode ? -0.35 : 0.35;
   const direction = lightMode ? -1 : 1;
@@ -229,19 +240,18 @@ function ToggleScene({
   useFrame((state) => {
     const time = state.clock.elapsedTime;
 
-    // Ball slide animation with velocity tracking
-    const prevPos = ballPosition;
-    const newPos = THREE.MathUtils.lerp(ballPosition, targetPosition, 0.04);
-    const newVelocity = newPos - prevPos;
-    setBallPosition(newPos);
-    setVelocity(newVelocity);
+    const prevPos = ballPositionRef.current;
+    const newPos = THREE.MathUtils.lerp(prevPos, targetPosition, 0.04);
+    ballPositionRef.current = newPos;
+    velocityRef.current = newPos - prevPos;
 
-    // Click bounce animation
+    const clicked = clickedRef.current;
     const targetScale = clicked ? 1.12 : hovered ? 1.04 : 1;
-    const newScale = THREE.MathUtils.lerp(scale, targetScale, 0.15);
-    setScale(newScale);
+    const prevScale = scaleRef.current;
+    const newScale = THREE.MathUtils.lerp(prevScale, targetScale, 0.15);
+    scaleRef.current = newScale;
     if (clicked && Math.abs(newScale - 1.12) < 0.01) {
-      setClicked(false);
+      clickedRef.current = false;
     }
 
     // Subtle group tilt on hover
@@ -251,12 +261,12 @@ function ToggleScene({
       groupRef.current.rotation.x = THREE.MathUtils.lerp(
         groupRef.current.rotation.x,
         tiltX,
-        0.1
+        0.1,
       );
       groupRef.current.rotation.y = THREE.MathUtils.lerp(
         groupRef.current.rotation.y,
         tiltY,
-        0.1
+        0.1,
       );
       groupRef.current.scale.setScalar(newScale);
     }
@@ -269,20 +279,20 @@ function ToggleScene({
         trackMaterialRef.current.emissive.setRGB(
           0.03 * trackGlow,
           0.12 * trackGlow,
-          0.08 * trackGlow
+          0.08 * trackGlow,
         );
       } else {
         trackMaterialRef.current.emissive.setRGB(
           0.02 * trackGlow,
           0.08 * trackGlow,
-          0.05 * trackGlow
+          0.05 * trackGlow,
         );
       }
     }
   });
 
   const handleClick = () => {
-    setClicked(true);
+    clickedRef.current = true;
     setLightMode(!lightMode);
     localStorage.setItem("lightMode", JSON.stringify(!lightMode));
   };
@@ -312,21 +322,21 @@ function ToggleScene({
       >
         {/* Track */}
         <mesh rotation={[0, 0, Math.PI / 2]}>
-          <capsuleGeometry args={[0.18, 0.7, 8, 16]} />
+          <capsuleGeometry args={[0.175, 0.72, 3, 16]} />
           <meshStandardMaterial
             ref={trackMaterialRef}
             color={lightMode ? "#0c0c0c" : "#060606"}
             emissive="#0a2018"
-            emissiveIntensity={1}
-            metalness={0.9}
-            roughness={0.25}
+            emissiveIntensity={0.11}
+            metalness={0.4}
+            roughness={0.3}
           />
         </mesh>
 
         {/* Fluid ball */}
         <FluidBall
-          position={ballPosition}
-          velocity={velocity}
+          ballXRef={ballPositionRef}
+          velocityRef={velocityRef}
           direction={direction}
           lightMode={lightMode}
         />

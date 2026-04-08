@@ -70,7 +70,7 @@ export function LoadingScreen({ isLoaded }: LoadingScreenProps) {
         {/* Logo */}
         <div className="text-[180%] md:text-[300%] font-bold font-sans loading-logo-glow">
           <span
-            className="px-1.5 md:px-2 bg-[#50C878]"
+            className="px-1.5 md:px-2 bg-[#50C878] text-white"
             style={{
               boxShadow: "0 0 30px rgba(80, 200, 120, 0.3)",
             }}

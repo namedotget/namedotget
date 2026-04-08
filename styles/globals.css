@@ -32,8 +32,8 @@
 
   --home-glass-divider-hi: rgba(130, 235, 185, 0.38);
   --home-glass-divider-lo: rgba(12, 48, 32, 0.72);
-  --home-glass-divider-glow: 0 0 14px rgba(80, 200, 120, 0.2),
-    0 0 4px rgba(80, 200, 120, 0.14);
+  --home-glass-divider-glow:
+    0 0 14px rgba(80, 200, 120, 0.2), 0 0 4px rgba(80, 200, 120, 0.14);
 }
 
 body.light-mode {
@@ -62,17 +62,13 @@ body.light-mode {
 
   --home-glass-divider-hi: rgba(160, 248, 210, 0.42);
   --home-glass-divider-lo: rgba(28, 95, 68, 0.55);
-  --home-glass-divider-glow: 0 0 16px rgba(92, 224, 165, 0.22),
-    0 0 5px rgba(70, 200, 150, 0.16);
+  --home-glass-divider-glow:
+    0 0 16px rgba(92, 224, 165, 0.22), 0 0 5px rgba(70, 200, 150, 0.16);
 }
 
 body {
-  color: #e8e8e8;
-  background: #0a0a0d;
-}
-
-body.light-mode {
-  background: #383a42;
+  color: #000000;
+  background: #e7e7e7;
 }
 
 .glass {
@@ -122,7 +118,8 @@ body.light-mode .home-glass-recess-row:hover {
 }
 
 .home-text-xf {
-  transition: color 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+  transition:
+    color 0.75s cubic-bezier(0.22, 1, 0.36, 1),
     background-color 0.75s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.75s cubic-bezier(0.22, 1, 0.36, 1),
     text-shadow 0.75s cubic-bezier(0.22, 1, 0.36, 1),
@@ -184,6 +181,176 @@ body.light-mode .home-glass-recess-row:hover {
 body.light-mode .home-section-heading__label {
   text-shadow: 0 0 20px
     color-mix(in srgb, var(--home-text-accent) 26%, transparent);
+}
+
+@keyframes home-pager-rail-sheen {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+/* Top-right toggle: only the pit receives clicks; bezel/padding are visual-only. */
+.layout-toggle-recess {
+  pointer-events: none;
+}
+
+.layout-toggle-recess__bezel {
+  pointer-events: none;
+  padding: 0.4rem 0.45rem 0.45rem 0.45rem;
+  border-radius: 0 0 0 1.35rem;
+  background: color-mix(
+    in srgb,
+    var(--home-text-accent) 8%,
+    rgba(0, 0, 0, 0.38)
+  );
+  backdrop-filter: blur(18px) saturate(118%);
+  -webkit-backdrop-filter: blur(18px) saturate(118%);
+  border: 1px solid color-mix(in srgb, var(--home-text-accent) 28%, transparent);
+  border-top: none;
+  border-right: none;
+  box-shadow:
+    inset 0 5px 22px rgba(0, 0, 0, 0.62),
+    inset 0 2px 6px rgba(0, 0, 0, 0.45),
+    inset 0 -1px 0 color-mix(in srgb, var(--home-text-accent) 18%, transparent),
+    0 16px 36px rgba(0, 0, 0, 0.4);
+}
+
+.layout-toggle-recess__pit {
+  pointer-events: auto;
+  margin: 0 auto;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.62);
+  box-shadow:
+    inset 0 4px 16px rgba(0, 0, 0, 0.85),
+    inset 0 1px 2px rgba(0, 0, 0, 0.55),
+    inset 0 -1px 10px
+      color-mix(in srgb, var(--home-text-accent) 14%, transparent),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+body.light-mode .layout-toggle-recess__bezel {
+  background: color-mix(
+    in srgb,
+    var(--home-text-accent) 12%,
+    rgba(0, 0, 0, 0.28)
+  );
+  box-shadow:
+    inset 0 5px 20px rgba(0, 0, 0, 0.35),
+    inset 0 2px 5px rgba(0, 0, 0, 0.22),
+    inset 0 -1px 0 color-mix(in srgb, var(--home-text-accent) 22%, transparent),
+    0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+body.light-mode .layout-toggle-recess__pit {
+  background: rgba(0, 0, 0, 0.42);
+  box-shadow:
+    inset 0 4px 14px rgba(0, 0, 0, 0.55),
+    inset 0 1px 2px rgba(0, 0, 0, 0.35),
+    inset 0 -1px 8px
+      color-mix(in srgb, var(--home-text-accent) 18%, transparent),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+/* Do not set position here; it would override Tailwind `fixed` on the buttons. */
+.home-pager-rail {
+  isolation: isolate;
+}
+
+.home-pager-rail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--home-text-accent) 55%, transparent) 22%,
+    color-mix(in srgb, var(--home-text-accent) 85%, transparent) 50%,
+    color-mix(in srgb, var(--home-text-accent) 55%, transparent) 78%,
+    transparent 100%
+  );
+  box-shadow: 0 0 16px
+    color-mix(in srgb, var(--home-text-accent) 40%, transparent);
+  animation: home-pager-rail-sheen 3.6s ease-in-out infinite;
+}
+
+.home-pager-rail--left::before {
+  right: 0;
+  border-radius: 0 0.75rem 0.75rem 0;
+}
+
+.home-pager-rail--right::before {
+  left: 0;
+  border-radius: 0.75rem 0 0 0.75rem;
+}
+
+.home-pager-rail--subdued::before {
+  opacity: 0.28;
+  animation: none;
+  box-shadow: 0 0 8px
+    color-mix(in srgb, var(--home-text-accent) 18%, transparent);
+}
+
+.home-pager-rail__chevron {
+  position: relative;
+  z-index: 1;
+  color: var(--home-text-accent);
+  text-shadow:
+    0 0 10px color-mix(in srgb, var(--home-text-accent) 70%, transparent),
+    0 0 22px color-mix(in srgb, var(--home-text-accent) 45%, transparent),
+    0 0 36px color-mix(in srgb, var(--home-text-accent) 22%, transparent);
+  transition:
+    text-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-pager-rail:hover:not(:disabled) .home-pager-rail__chevron,
+.home-pager-rail:focus-visible .home-pager-rail__chevron {
+  color: var(--home-text-accent-hover);
+  text-shadow:
+    0 0 12px color-mix(in srgb, var(--home-text-accent-hover) 85%, transparent),
+    0 0 28px color-mix(in srgb, var(--home-text-accent-hover) 50%, transparent),
+    0 0 48px color-mix(in srgb, var(--home-text-accent-hover) 28%, transparent);
+}
+
+.home-pager-rail--left:hover:not(:disabled) .home-pager-rail__chevron,
+.home-pager-rail--left:focus-visible .home-pager-rail__chevron {
+  transform: translateX(-1px);
+}
+
+.home-pager-rail--right:hover:not(:disabled) .home-pager-rail__chevron,
+.home-pager-rail--right:focus-visible .home-pager-rail__chevron {
+  transform: translateX(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-pager-rail::before {
+    animation: none;
+    opacity: 0.72;
+  }
+
+  .home-pager-rail--subdued::before {
+    opacity: 0.26;
+  }
+
+  .home-pager-rail__chevron {
+    transition-duration: 0.01ms;
+  }
+
+  .home-pager-rail--left:hover:not(:disabled) .home-pager-rail__chevron,
+  .home-pager-rail--left:focus-visible .home-pager-rail__chevron,
+  .home-pager-rail--right:hover:not(:disabled) .home-pager-rail__chevron,
+  .home-pager-rail--right:focus-visible .home-pager-rail__chevron {
+    transform: none;
+  }
 }
 
 .text-home-accent {
@@ -248,7 +415,8 @@ a.text-home-term-link {
   text-decoration: none;
   border-bottom-width: 1px;
   border-bottom-style: dotted;
-  transition: color 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+  transition:
+    color 0.75s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.75s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -406,7 +574,8 @@ body::-webkit-scrollbar,
 @media (min-width: 768px) {
   .home-hero-card-glass {
     background: rgba(4, 8, 6, 0.09);
-    border: 1px solid color-mix(in srgb, var(--home-text-accent) 11%, transparent);
+    border: 1px solid
+      color-mix(in srgb, var(--home-text-accent) 11%, transparent);
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.035) inset,
       0 10px 36px rgba(0, 0, 0, 0.07);
@@ -416,7 +585,8 @@ body::-webkit-scrollbar,
 .home-hero-inner-panel {
   background: rgba(0, 0, 0, 0.52);
   border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, var(--home-text-accent) 9%, rgba(255, 255, 255, 0.06));
+  border: 1px solid
+    color-mix(in srgb, var(--home-text-accent) 9%, rgba(255, 255, 255, 0.06));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
 }
 

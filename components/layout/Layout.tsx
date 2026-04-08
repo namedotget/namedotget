@@ -1,10 +1,13 @@
 import { Toaster } from "react-hot-toast";
-import { useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { Footer } from "./Footer";
 import { useAudioAnalyzer } from "@/lib/useAudioAnalyzer";
 import { LoadingScreen } from "@/components/LoadingScreen";
+
+/** Mirrors `body.light-mode` for consumers that should not depend on DOM mutation observers. */
+export const LightModeContext = createContext(true);
 
 const BackgroundScroll = dynamic(
   () => import("./BackgroundScroll").then((mod) => mod.default),
@@ -19,7 +22,7 @@ const ToggleMesh = dynamic(
   { ssr: false, loading: () => null },
 );
 
-function MusicStartStrip({
+function MusicButton({
   isPlaying,
   onStartMusic,
 }: {
@@ -29,23 +32,33 @@ function MusicStartStrip({
   return (
     <div
       className={[
-        "pointer-events-auto w-full border-t border-[rgba(80,200,120,0.22)] bg-[rgba(6,8,10,0.82)] backdrop-blur-md transition-opacity duration-1000",
+        "pointer-events-auto max-w-[min(calc(100vw-5rem),22rem)] transition-opacity duration-1000",
         isPlaying ? "pointer-events-none opacity-0" : "opacity-100",
       ].join(" ")}
       role="region"
       aria-label="Background audio"
+      style={{
+        background: "rgba(0, 0, 0, 0.42)",
+        backdropFilter: "blur(16px) saturate(120%)",
+        WebkitBackdropFilter: "blur(16px) saturate(120%)",
+        border: "1px solid rgba(80, 200, 120, 0.26)",
+        boxShadow:
+          "0 4px 32px rgba(0,0,0,0.42), inset 0 1px 0 rgba(130, 235, 185, 0.12)",
+      }}
     >
-      <div className="mx-auto flex max-w-3xl justify-center px-4 py-2.5 md:py-3">
-        <button
-          type="button"
-          onClick={onStartMusic}
-          className="font-mono text-sm text-[#c0c0c0] transition-transform duration-300 hover:scale-[1.02] hover:text-[#e2e2e2]"
-        >
-          <span className="text-ndgGreen">{">"}</span>
-          <span className="ml-2">click 4 </span>
-          <span className="ml-1 animate-pulse text-ndgGreen">music</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onStartMusic}
+        aria-label="Start background music"
+        className="home-text-xf flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 font-mono text-[0.8125rem] uppercase tracking-[0.12em] text-[color-mix(in_srgb,var(--home-text-accent)_88%,#c8c8c8)] transition-[transform,color] duration-300 hover:text-[var(--home-text-accent-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--home-text-accent)] active:scale-[0.98] md:px-5 md:py-3 md:text-sm md:tracking-[0.14em]"
+      >
+        <span className="text-[var(--home-text-accent)]" aria-hidden>
+          {">"}
+        </span>
+        <span className="motion-safe:animate-pulse text-[var(--home-text-accent)]">
+          music
+        </span>
+      </button>
     </div>
   );
 }
@@ -101,7 +114,7 @@ export function Layout({ children }: any) {
   }, [isCanvasReady]);
 
   return (
-    <>
+    <LightModeContext.Provider value={lightMode}>
       <LoadingScreen isLoaded={isCanvasReady} />
       <BackgroundScroll
         lightMode={lightMode}
@@ -163,7 +176,7 @@ export function Layout({ children }: any) {
       <div
         className={[
           "relative z-10 flex min-h-[100dvh] flex-col",
-          !isPlaying ? "pb-[calc(3rem+env(safe-area-inset-bottom,0px))]" : "",
+          !isPlaying ? "pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]" : "",
         ].join(" ")}
       >
         <div className="flex min-h-0 flex-1 flex-col">
@@ -172,13 +185,19 @@ export function Layout({ children }: any) {
         </div>
       </div>
       <div
-        className="fixed bottom-0 left-0 right-0 z-[92000]"
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        className="pointer-events-none fixed bottom-0 left-0 right-0 z-[92000] flex justify-center px-4"
+        style={{
+          paddingBottom: "max(0.65rem, env(safe-area-inset-bottom, 0px))",
+        }}
       >
-        <MusicStartStrip isPlaying={isPlaying} onStartMusic={startAudio} />
+        <MusicButton isPlaying={isPlaying} onStartMusic={startAudio} />
       </div>
       <Toaster
         position="bottom-center"
+        containerStyle={{
+          bottom:
+            "max(5.25rem, calc(4.25rem + env(safe-area-inset-bottom, 0px)))",
+        }}
         toastOptions={{
           duration: 4000,
           style: {
@@ -207,6 +226,6 @@ export function Layout({ children }: any) {
           },
         }}
       />
-    </>
+    </LightModeContext.Provider>
   );
 }

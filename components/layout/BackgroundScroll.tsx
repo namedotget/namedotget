@@ -35,7 +35,7 @@ export default function BackgroundScroll({
       >
         <Canvas
           flat
-          dpr={[1, 2]}
+          dpr={[1, 1.5]}
           gl={{
             powerPreference: "high-performance",
             antialias: true,
@@ -43,7 +43,7 @@ export default function BackgroundScroll({
             alpha: false,
           }}
           onCreated={({ gl, scene, camera }) => {
-            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            gl.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             if (typeof gl.compile === "function") {
               gl.compile(scene, camera);
             }

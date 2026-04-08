@@ -1,7 +1,8 @@
 //@ts-nocheck
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { debugIngest } from "@/lib/debugIngest";
 
 function seededRandom(seed: number) {
   const x = Math.sin(seed) * 10000;
@@ -16,6 +17,9 @@ interface CellAnimationState {
   glowIntensity: number;
   emissiveIntensity: number;
 }
+
+/** Lower = fewer face cells, draw calls, and per-material lighting work (was 5 → 150 meshes). */
+const CIRCUIT_FACE_GRID = 4;
 
 const EMISSIVE_START_BASE = 0.3;
 const EMISSIVE_START_SPREAD = 1.7;
@@ -65,7 +69,6 @@ type CircuitCellDef = {
   };
   behaviorConfig: ReturnType<typeof behaviorConfigFor>;
   rotation: [number, number, number];
-  boxExtent: number;
 };
 
 function tickOneCell(
@@ -77,7 +80,7 @@ function tickOneCell(
   highFreq: number,
   lightMode: boolean,
   mesh: THREE.Mesh | null,
-  mat: THREE.MeshStandardMaterial | null,
+  mat: THREE.MeshLambertMaterial | null,
   hasInitialized: boolean,
 ): boolean {
   const { initTimes, behaviorConfig, behavior, canGlow, seed, audioMode } = def;
@@ -171,15 +174,16 @@ function tickOneCell(
     const audioGlow = anim.currentExtrude > 0.02 ? audioIntensity * 0.22 : 0;
     const bootFade = Math.max(0.7, anim.emissiveIntensity);
 
+    let er = 0;
+    let eg = 0;
+    let eb = 0;
     if (lightMode) {
       const glowBoost = anim.glowIntensity * 1.2;
       const totalIntensity =
         (baseIntensity + movingBoost + glowBoost + audioGlow) * bootFade;
-      mat.emissive.setRGB(
-        (0.02 + glowBoost * 0.25) * totalIntensity,
-        (0.12 + glowBoost * 0.75) * totalIntensity,
-        (0.08 + glowBoost * 0.5) * totalIntensity,
-      );
+      er = (0.02 + glowBoost * 0.25) * totalIntensity;
+      eg = (0.12 + glowBoost * 0.75) * totalIntensity;
+      eb = (0.08 + glowBoost * 0.5) * totalIntensity;
     } else {
       const glowBoost = anim.glowIntensity * 1.6;
       const greenAccent = anim.isGlowing
@@ -190,11 +194,27 @@ function tickOneCell(
             ? 0.04
             : 0;
       const baseIntensityWithBoost = (baseIntensity + movingBoost) * bootFade;
-      mat.emissive.setRGB(
-        (0.01 + glowBoost * 0.12) * baseIntensityWithBoost,
-        greenAccent * baseIntensityWithBoost + glowBoost * 0.38 * bootFade,
-        (0.01 + glowBoost * 0.18) * baseIntensityWithBoost,
-      );
+      er = (0.01 + glowBoost * 0.12) * baseIntensityWithBoost;
+      eg =
+        greenAccent * baseIntensityWithBoost + glowBoost * 0.38 * bootFade;
+      eb = (0.01 + glowBoost * 0.18) * baseIntensityWithBoost;
+    }
+    const cache = mat.userData as {
+      _emR?: number;
+      _emG?: number;
+      _emB?: number;
+    };
+    const eps = 0.0025;
+    if (
+      cache._emR === undefined ||
+      Math.abs(cache._emR - er) > eps ||
+      Math.abs((cache._emG ?? 0) - eg) > eps ||
+      Math.abs((cache._emB ?? 0) - eb) > eps
+    ) {
+      mat.emissive.setRGB(er, eg, eb);
+      cache._emR = er;
+      cache._emG = eg;
+      cache._emB = eb;
     }
   }
 
@@ -204,7 +224,7 @@ function tickOneCell(
 function buildCircuitCells(audioActive: boolean): CircuitCellDef[] {
   const items: CircuitCellDef[] = [];
 
-  const gridSize = 5;
+  const gridSize = CIRCUIT_FACE_GRID;
   const cellSize = 2 / gridSize;
   const halfGrid = (gridSize - 1) / 2;
 
@@ -277,8 +297,6 @@ function buildCircuitCells(audioActive: boolean): CircuitCellDef[] {
           glowStart: GLOW_START_BASE + seededRandom(seed + 777) * GLOW_START_SPREAD,
         };
 
-        const gapMultiplier = behavior === "static" ? 0.98 : 0.88;
-
         items.push({
           basePosition: pos,
           normal: face.normal,
@@ -289,7 +307,6 @@ function buildCircuitCells(audioActive: boolean): CircuitCellDef[] {
           initTimes,
           behaviorConfig: behaviorConfigFor(behavior),
           rotation: normalToRotation(face.normal),
-          boxExtent: cellSize * gapMultiplier,
         });
       }
     }
@@ -310,6 +327,7 @@ function createInitialAnimState(): CellAnimationState {
 }
 
 function createInnerGlowMaterial() {
+  const g = `${CIRCUIT_FACE_GRID}.0`;
   return new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
@@ -335,7 +353,7 @@ function createInnerGlowMaterial() {
           float pulse = sin(uTime * 0.8) * 0.3 + 0.7;
           float pulse2 = sin(uTime * 1.2 + 2.0) * 0.2 + 0.8;
           
-          float gridSize = 5.0;
+          float gridSize = ${g};
           vec2 cellUv = fract(uv * gridSize);
           float grid = step(0.1, cellUv.x) * step(cellUv.x, 0.9) * step(0.1, cellUv.y) * step(cellUv.y, 0.9);
           
@@ -362,6 +380,7 @@ function createInnerGlowMaterial() {
 }
 
 function createWireFrameMaterial() {
+  const g = `${CIRCUIT_FACE_GRID}.0`;
   return new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
@@ -382,7 +401,7 @@ function createWireFrameMaterial() {
         
         void main() {
           vec2 uv = vUv;
-          float gridSize = 5.0;
+          float gridSize = ${g};
           vec2 cellUv = fract(uv * gridSize);
           
           float wireWidth = 0.08;
@@ -435,19 +454,43 @@ export function CircuitBox({
   }, [innerMaterial, wireMaterial]);
 
   const meshRefs = useRef<(THREE.Mesh | null)[]>([]);
-  const matRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
+  const matRefs = useRef<(THREE.MeshLambertMaterial | null)[]>([]);
   const animStates = useRef<CellAnimationState[]>([]);
   const hasInitialized = useRef<boolean[]>([]);
 
-  useLayoutEffect(() => {
-    const n = cells.length;
-    animStates.current = Array.from({ length: n }, () => createInitialAnimState());
-    hasInitialized.current = Array.from({ length: n }, () => false);
-    meshRefs.current = new Array(n).fill(null);
-    matRefs.current = new Array(n).fill(null);
-  }, [cells]);
+  const cellSize = 2 / CIRCUIT_FACE_GRID;
+  const boxGeomDense = useMemo(
+    () => new THREE.BoxGeometry(cellSize * 0.88, cellSize * 0.88, 0.04),
+    [cellSize],
+  );
+  const boxGeomStatic = useMemo(
+    () => new THREE.BoxGeometry(cellSize * 0.98, cellSize * 0.98, 0.04),
+    [cellSize],
+  );
+
+  useEffect(() => {
+    return () => {
+      boxGeomDense.dispose();
+      boxGeomStatic.dispose();
+    };
+  }, [boxGeomDense, boxGeomStatic]);
 
   useFrame((state, delta) => {
+    const n = cells.length;
+    if (
+      animStates.current.length !== n ||
+      hasInitialized.current.length !== n ||
+      meshRefs.current.length !== n ||
+      matRefs.current.length !== n
+    ) {
+      animStates.current = Array.from({ length: n }, () =>
+        createInitialAnimState(),
+      );
+      hasInitialized.current = Array.from({ length: n }, () => false);
+      meshRefs.current = new Array(n).fill(null);
+      matRefs.current = new Array(n).fill(null);
+    }
+
     const time = state.clock.elapsedTime;
     const dt = Math.min(delta, 0.1);
     const lowFreq = lowFreqRef.current;
@@ -458,6 +501,7 @@ export function CircuitBox({
     wireMaterial.uniforms.uTime.value = time;
     wireMaterial.uniforms.uLightMode.value = lightMode;
 
+    const t0 = performance.now();
     for (let i = 0; i < cells.length; i++) {
       hasInitialized.current[i] = tickOneCell(
         cells[i],
@@ -472,6 +516,15 @@ export function CircuitBox({
         hasInitialized.current[i],
       );
     }
+    // #region agent log
+    const loopMs = performance.now() - t0;
+    if (process.env.NODE_ENV === "development" && loopMs > 12) {
+      debugIngest("H3", "CircuitMaterial.tsx:useFrame", "cell_loop_ms", {
+        loopMs: Math.round(loopMs * 10) / 10,
+        cellCount: cells.length,
+      });
+    }
+    // #endregion
   });
 
   return (
@@ -490,21 +543,19 @@ export function CircuitBox({
           ref={(r) => {
             meshRefs.current[idx] = r;
           }}
+          geometry={
+            cell.behavior === "static" ? boxGeomStatic : boxGeomDense
+          }
           position={cell.basePosition}
           rotation={cell.rotation}
         >
-          <boxGeometry
-            args={[cell.boxExtent, cell.boxExtent, 0.04]}
-          />
-          <meshStandardMaterial
+          <meshLambertMaterial
             ref={(r) => {
               matRefs.current[idx] = r;
             }}
             color={lightMode ? "#040404" : "#080808"}
             emissive={lightMode ? "#0a2520" : "#000000"}
             emissiveIntensity={1}
-            metalness={0.92}
-            roughness={0.2}
           />
         </mesh>
       ))}

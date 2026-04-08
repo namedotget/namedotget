@@ -6,7 +6,7 @@ import * as THREE from "three";
 
 const WireWallShaderMaterial = shaderMaterial(
   {
-    uTime: 0,
+    uFlow: 0,
     uModeBlend: 0,
   },
   // Vertex Shader
@@ -23,14 +23,19 @@ const WireWallShaderMaterial = shaderMaterial(
   `,
   // Fragment Shader
   `
-    uniform float uTime;
+    uniform float uFlow;
     uniform float uModeBlend;
     
     varying vec2 vUv;
     varying vec4 vScreenPos;
+
+    float wirePulse(float flow, float spatial, float phase) {
+      float u = sin(spatial - flow + phase) * 0.5 + 0.5;
+      return mix(0.22, 1.0, u * u);
+    }
     
     // Horizontal wire with glow and soft ends
-    float wire(vec2 uv, float y, float xStart, float xEnd, float time, float speed, float phase) {
+    float wire(vec2 uv, float y, float xStart, float xEnd, float flow, float spatialMul, float phase) {
       float dist = abs(uv.y - y);
       
       // Soft fade at ends
@@ -45,15 +50,13 @@ const WireWallShaderMaterial = shaderMaterial(
       // Subtle glow falloff
       float glow = smoothstep(0.025, 0.0, dist);
       
-      // Animated pulse
-      float pulse = sin(uv.x * 8.0 - time * speed + phase) * 0.5 + 0.5;
-      pulse = pow(pulse, 6.0);
+      float pulse = wirePulse(flow, uv.x * spatialMul, phase);
       
       return (glow * pulse * 0.5 + core * 0.3) * edgeFade;
     }
     
     // Vertical wire with glow and soft ends
-    float wireV(vec2 uv, float x, float yStart, float yEnd, float time, float speed, float phase) {
+    float wireV(vec2 uv, float x, float yStart, float yEnd, float flow, float spatialMul, float phase) {
       float dist = abs(uv.x - x);
       
       // Soft fade at ends
@@ -68,9 +71,7 @@ const WireWallShaderMaterial = shaderMaterial(
       // Subtle glow falloff
       float glow = smoothstep(0.02, 0.0, dist);
       
-      // Animated pulse
-      float pulse = sin(uv.y * 10.0 - time * speed + phase) * 0.5 + 0.5;
-      pulse = pow(pulse, 6.0);
+      float pulse = wirePulse(flow, uv.y * spatialMul, phase);
       
       return (glow * pulse * 0.5 + core * 0.3) * edgeFade;
     }
@@ -80,76 +81,71 @@ const WireWallShaderMaterial = shaderMaterial(
       vec2 uv = (vScreenPos.xy / vScreenPos.w) * 0.5 + 0.5;
       
       vec3 baseColor = vec3(10.0 / 255.0, 10.0 / 255.0, 13.0 / 255.0);
-      
-      float brush = fract(sin(uv.y * 800.0) * 43758.5453);
-      brush = brush * 0.0015;
-      vec3 metal = baseColor + vec3(brush);
-      
-      metal *= 0.992 + uv.y * 0.012;
+      vec3 metal = baseColor * (0.992 + uv.y * 0.012);
       
       // === WIRE NETWORK (realistic cable routing) ===
       float totalGlow = 0.0;
       
       // Top cable run (horizontal bus along top)
-      totalGlow += wire(uv, 0.92, 0.0, 0.7, uTime, 1.8, 0.0);
-      totalGlow += wire(uv, 0.88, 0.0, 0.5, uTime, 2.0, 1.0);
+      totalGlow += wire(uv, 0.92, 0.0, 0.7, uFlow, 7.9, 0.0);
+      totalGlow += wire(uv, 0.88, 0.0, 0.5, uFlow, 8.55, 1.12);
       
       // Bottom cable run (horizontal bus along bottom)
-      totalGlow += wire(uv, 0.08, 0.3, 1.0, uTime, 1.6, 2.0);
-      totalGlow += wire(uv, 0.12, 0.4, 1.0, uTime, 2.2, 3.0);
+      totalGlow += wire(uv, 0.08, 0.3, 1.0, uFlow, 7.45, 2.08);
+      totalGlow += wire(uv, 0.12, 0.4, 1.0, uFlow, 8.95, 3.21);
       
       // Mid horizontal (data bus)
-      totalGlow += wire(uv, 0.5, 0.1, 0.9, uTime, 1.4, 4.0);
+      totalGlow += wire(uv, 0.5, 0.1, 0.9, uFlow, 8.1, 4.02);
       
-      // Vertical drops from top bus
-      totalGlow += wireV(uv, 0.18, 0.5, 0.92, uTime, 2.0, 0.5);
-      totalGlow += wireV(uv, 0.42, 0.5, 0.88, uTime, 1.7, 1.5);
-      totalGlow += wireV(uv, 0.65, 0.5, 0.92, uTime, 2.3, 2.5);
+      // Vertical drops (fewer segments = cheaper fullscreen FS)
+      totalGlow += wireV(uv, 0.22, 0.5, 0.92, uFlow, 9.35, 0.58);
+      totalGlow += wireV(uv, 0.55, 0.5, 0.88, uFlow, 10.2, 1.48);
+      totalGlow += wireV(uv, 0.72, 0.12, 0.5, uFlow, 9.05, 4.41);
+      totalGlow += wireV(uv, 0.05, 0.2, 0.8, uFlow, 10.65, 5.02);
       
-      // Vertical risers from bottom bus
-      totalGlow += wireV(uv, 0.55, 0.08, 0.5, uTime, 1.9, 3.5);
-      totalGlow += wireV(uv, 0.78, 0.12, 0.5, uTime, 2.1, 4.5);
-      
-      // Edge runs
-      totalGlow += wireV(uv, 0.05, 0.2, 0.8, uTime, 1.5, 5.0);
-      totalGlow += wireV(uv, 0.95, 0.3, 0.9, uTime, 1.8, 5.5);
-      
-      // Clamp glow
-      totalGlow = clamp(totalGlow, 0.0, 1.0);
+      float vis = tanh(totalGlow * 0.34);
       
       vec3 glowDark = vec3(0.314, 0.784, 0.471);
       vec3 glowLight = vec3(0.07, 0.3, 0.24);
       vec3 glowColor = mix(glowDark, glowLight, uModeBlend);
       
-      vec3 color = metal;
-      color = mix(color, glowColor, totalGlow * 0.7);
-      color += glowColor * totalGlow * 0.35;
+      // Single mix avoids RGB > 1 and driver clamp pops from mix + add.
+      vec3 color = mix(metal, glowColor, vis * 0.88);
       
       gl_FragColor = vec4(color, 1.0);
     }
-  `
+  `,
 );
 
 extend({ WireWallShaderMaterial });
 
 const MODE_BLEND_LAMBDA = 10;
+const TAU = Math.PI * 2;
+/** rad/s; matches former ~1.6 multipliers, phase advanced in JS so sin() never sees huge floats. */
+const FLOW_OMEGA = 1.62;
 
 export const WireWall = forwardRef(function WireWall(
   { lightMode }: { lightMode: boolean },
-  ref
+  ref,
 ) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const modeBlend = useRef(lightMode ? 1 : 0);
+  const flowPhaseRef = useRef(0);
 
   useImperativeHandle(ref, () => materialRef.current);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!materialRef.current) return;
     const dt = Math.min(delta, 0.1);
     const target = lightMode ? 1 : 0;
     const t = 1 - Math.exp(-MODE_BLEND_LAMBDA * dt);
     modeBlend.current = THREE.MathUtils.lerp(modeBlend.current, target, t);
-    materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
+    flowPhaseRef.current += dt * FLOW_OMEGA;
+    flowPhaseRef.current = THREE.MathUtils.euclideanModulo(
+      flowPhaseRef.current,
+      TAU,
+    );
+    materialRef.current.uniforms.uFlow.value = flowPhaseRef.current;
     materialRef.current.uniforms.uModeBlend.value = modeBlend.current;
   });
 
