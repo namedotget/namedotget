@@ -1,11 +1,14 @@
 import Head from "next/head";
 
+const defaultIcon = "/namedotget-icon.png";
+const defaultImage = "/cover.png";
+
 export function Metadata() {
   return (
     <Head>
       <title key="meta-title">name.get™</title>
-      <link rel="icon" href="/namedotget-icon.png" />
-      <link rel="apple-touch-icon" href="/namedotget-icon.png" />
+      <link rel="icon" href={defaultIcon} />
+      <link rel="apple-touch-icon" href={defaultIcon} />
       <meta name="theme-color" content="#50c878" />
       <meta name="description" content="a digital creator" />
       <meta
@@ -18,11 +21,11 @@ export function Metadata() {
       <meta name="twitter:creator" content="@namedotget" />
       <meta name="twitter:title" content="name.get™" />
       <meta name="twitter:description" content="a digital creator" />
-      <meta name="twitter:image" content="/namedotget-icon.png" />
+      <meta name="twitter:image" content={defaultImage} />
       <meta property="og:title" content="name.get™" />
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://namedotget.com" />
-      <meta property="og:image" content="/namedotget-icon.png" />
+      <meta property="og:image" content={defaultImage} />
       <meta property="og:description" content="a digital creator" />
       <meta property="og:site_name" content="namedotget" />
     </Head>
